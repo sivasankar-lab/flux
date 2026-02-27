@@ -1,0 +1,102 @@
+package com.example.socialmedia_poc.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class SeedWithMeta {
+    @JsonProperty("seed_id")
+    private String seedId;
+    
+    private String content;
+    private String category;
+    
+    @JsonProperty("meta_config")
+    private MetaConfig metaConfig;
+    
+    @JsonProperty("generation_context")
+    private GenerationContext generationContext;
+
+    public SeedWithMeta() {
+    }
+
+    public SeedWithMeta(String seedId, String content, String category, MetaConfig metaConfig) {
+        this.seedId = seedId;
+        this.content = content;
+        this.category = category;
+        this.metaConfig = metaConfig;
+    }
+
+    public String getSeedId() {
+        return seedId;
+    }
+
+    public void setSeedId(String seedId) {
+        this.seedId = seedId;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public MetaConfig getMetaConfig() {
+        return metaConfig;
+    }
+
+    public void setMetaConfig(MetaConfig metaConfig) {
+        this.metaConfig = metaConfig;
+    }
+
+    public GenerationContext getGenerationContext() {
+        return generationContext;
+    }
+
+    public void setGenerationContext(GenerationContext generationContext) {
+        this.generationContext = generationContext;
+    }
+
+    public static class GenerationContext {
+        @JsonProperty("based_on_interaction")
+        private String basedOnInteraction;
+        
+        @JsonProperty("user_preference_signal")
+        private String userPreferenceSignal;
+        
+        @JsonProperty("narrative_depth")
+        private String narrativeDepth;
+
+        public String getBasedOnInteraction() {
+            return basedOnInteraction;
+        }
+
+        public void setBasedOnInteraction(String basedOnInteraction) {
+            this.basedOnInteraction = basedOnInteraction;
+        }
+
+        public String getUserPreferenceSignal() {
+            return userPreferenceSignal;
+        }
+
+        public void setUserPreferenceSignal(String userPreferenceSignal) {
+            this.userPreferenceSignal = userPreferenceSignal;
+        }
+
+        public String getNarrativeDepth() {
+            return narrativeDepth;
+        }
+
+        public void setNarrativeDepth(String narrativeDepth) {
+            this.narrativeDepth = narrativeDepth;
+        }
+    }
+}

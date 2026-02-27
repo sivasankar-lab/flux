@@ -1,0 +1,86 @@
+[
+  {
+    "category": "History & Society",
+    "meta_config": {
+      "intensity_range": [6, 9],
+      "pacing": "Balanced",
+      "language": ["Tamil", "English", "Tanglish"],
+      "triggers": ["Curiosity", "Awe", "Pride", "Debate"],
+      "dwell_logic": {
+        "on_slow_read": "reveal_lesser_known_connections_between_historical_events",
+        "on_fast_swipe": "drop_a_single_shocking_historical_fact"
+      },
+      "vocabulary_weight": { "ancient": 0.9, "empire": 0.8, "revolution": 0.8, "forgotten": 0.7, "civilization": 0.7, "legacy": 0.6 }
+    }
+  },
+  {
+    "category": "Science & How Things Work",
+    "meta_config": {
+      "intensity_range": [5, 8],
+      "pacing": "Balanced",
+      "language": ["Tamil", "English", "Tanglish"],
+      "triggers": ["Aha-Moment", "Wonder", "Problem-Solve", "Novelty"],
+      "dwell_logic": {
+        "on_slow_read": "explain_the_underlying_mechanism_step_by_step",
+        "on_fast_swipe": "present_a_mind_blowing_one_liner_fact"
+      },
+      "vocabulary_weight": { "quantum": 0.8, "experiment": 0.9, "discovery": 0.9, "mechanism": 0.7, "breakthrough": 0.8, "proof": 0.6 }
+    }
+  },
+  {
+    "category": "Psychology & Human Behavior",
+    "meta_config": {
+      "intensity_range": [6, 9],
+      "pacing": "Slow",
+      "language": ["Tamil", "English", "Tanglish"],
+      "triggers": ["Self-Reflection", "Relatability", "Vulnerability", "Insight"],
+      "dwell_logic": {
+        "on_slow_read": "dive_into_cognitive_bias_or_emotional_pattern_with_real_example",
+        "on_fast_swipe": "pose_a_provocative_question_about_human_nature"
+      },
+      "vocabulary_weight": { "subconscious": 0.9, "bias": 0.8, "pattern": 0.8, "trigger": 0.7, "mindset": 0.9, "illusion": 0.7 }
+    }
+  },
+  {
+    "category": "Technology & Future",
+    "meta_config": {
+      "intensity_range": [7, 9],
+      "pacing": "Fast",
+      "language": ["Tamil", "English", "Tanglish"],
+      "triggers": ["Awe", "FOMO", "Obsolescence", "Ambition"],
+      "dwell_logic": {
+        "on_slow_read": "simulate_a_near_future_scenario_with_specific_tech",
+        "on_fast_swipe": "drop_a_shocking_stat_about_AI_or_automation"
+      },
+      "vocabulary_weight": { "AI": 0.9, "disrupt": 0.9, "autonomous": 0.8, "neural": 0.7, "obsolete": 0.8, "singularity": 0.6 }
+    }
+  },
+  {
+    "category": "Philosophy & Life Questions",
+    "meta_config": {
+      "intensity_range": [5, 8],
+      "pacing": "Slow",
+      "language": ["Tamil", "English", "Tanglish"],
+      "triggers": ["Existential", "Wonder", "Exploration", "Calm"],
+      "dwell_logic": {
+        "on_slow_read": "unfold_a_thought_experiment_or_paradox",
+        "on_fast_swipe": "present_a_single_profound_quote_or_question"
+      },
+      "vocabulary_weight": { "meaning": 0.9, "existence": 0.8, "purpose": 0.9, "paradox": 0.7, "truth": 0.8, "consciousness": 0.7 }
+    }
+  },
+  {
+    "category": "Health & Lifestyle Tips",
+    "meta_config": {
+      "intensity_range": [3, 6],
+      "pacing": "Balanced",
+      "language": ["Tamil", "English", "Tanglish"],
+      "triggers": ["Optimization", "Longevity", "Relatability", "Safety"],
+      "dwell_logic": {
+        "on_slow_read": "explain_the_science_behind_a_health_habit",
+        "on_fast_swipe": "offer_one_actionable_tip_you_can_start_today"
+      },
+      "vocabulary_weight": { "routine": 0.9, "optimal": 0.8, "habit": 0.9, "balance": 0.8, "energy": 0.7, "mindful": 0.7 }
+    }
+  }
+]

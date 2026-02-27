@@ -1,0 +1,49 @@
+[ {
+  "category" : "Tech / Innovation",
+  "timestamp" : 1771309678.028525000,
+  "user_id" : "user_1771309663152_3fbfc57fd18d1148",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 5,
+  "meta_data" : null
+}, {
+  "category" : "Lifestyle / Daily",
+  "timestamp" : 1771309678.029830000,
+  "user_id" : "user_1771309663152_3fbfc57fd18d1148",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 6,
+  "meta_data" : null
+}, {
+  "category" : "Business / Startups",
+  "timestamp" : 1771309678.032042000,
+  "user_id" : "user_1771309663152_3fbfc57fd18d1148",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 5,
+  "meta_data" : null
+}, {
+  "category" : "Lifestyle / Daily",
+  "timestamp" : 1771309720.734325000,
+  "user_id" : "user_1771309663152_3fbfc57fd18d1148",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 15,
+  "meta_data" : null
+}, {
+  "category" : "Entertainment / Pop",
+  "timestamp" : 1771312150.545688000,
+  "user_id" : "user_1771309663152_3fbfc57fd18d1148",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 8,
+  "meta_data" : null
+}, {
+  "category" : "Travel / Adventure",
+  "timestamp" : 1771312150.560061000,
+  "user_id" : "user_1771309663152_3fbfc57fd18d1148",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 8,
+  "meta_data" : null
+} ]]

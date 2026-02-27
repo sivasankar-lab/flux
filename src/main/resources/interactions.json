@@ -1,0 +1,145 @@
+[ {
+  "category" : "Educational / How-To",
+  "timestamp" : 1771239855.087793000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 11,
+  "meta_data" : null
+}, {
+  "category" : "Business / Startups",
+  "timestamp" : 1771239857.708872000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "VIEW",
+  "dwell_time_ms" : 2675,
+  "meta_data" : null
+}, {
+  "category" : "Entertainment / Pop",
+  "timestamp" : 1771239859.942501000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 18,
+  "meta_data" : null
+}, {
+  "category" : "Lifestyle / Daily",
+  "timestamp" : 1771239997.472280000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 28,
+  "meta_data" : null
+}, {
+  "category" : "Business / Startups",
+  "timestamp" : 1771239997.479313000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 27,
+  "meta_data" : null
+}, {
+  "category" : "Health / Wellness",
+  "timestamp" : 1771239997.545780000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 28,
+  "meta_data" : null
+}, {
+  "category" : "Behind-the-Scenes & BTS ",
+  "timestamp" : 1771239999.775165000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "VIEW",
+  "dwell_time_ms" : 2343,
+  "meta_data" : null
+}, {
+  "category" : "Lifestyle / Daily",
+  "timestamp" : 1771239999.941299000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "VIEW",
+  "dwell_time_ms" : 2508,
+  "meta_data" : null
+}, {
+  "category" : "Parenting / Family",
+  "timestamp" : 1771240002.724233000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 6,
+  "meta_data" : null
+}, {
+  "category" : "Entertainment / Pop",
+  "timestamp" : 1771240007.196668000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "SKIP",
+  "dwell_time_ms" : 30,
+  "meta_data" : null
+}, {
+  "category" : "Lifestyle / Daily",
+  "timestamp" : 1771240018.163436000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+}, {
+  "category" : "Health / Wellness",
+  "timestamp" : 1771240022.618838000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+}, {
+  "category" : "Tech / Innovation",
+  "timestamp" : 1771240024.590825000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+}, {
+  "category" : "Parenting / Family",
+  "timestamp" : 1771240026.728897000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+}, {
+  "category" : "Lifestyle / Daily",
+  "timestamp" : 1771240028.266992000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+}, {
+  "category" : "Business / Startups",
+  "timestamp" : 1771240029.119576000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+}, {
+  "category" : "Travel / Adventure",
+  "timestamp" : 1771240030.792124000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+}, {
+  "category" : "Travel / Adventure",
+  "timestamp" : 1771240034.361127000,
+  "user_id" : "user_1771239012774_0k9mrf58c",
+  "seed_id" : null,
+  "interaction_type" : "LIKE",
+  "dwell_time_ms" : null,
+  "meta_data" : null
+} ]

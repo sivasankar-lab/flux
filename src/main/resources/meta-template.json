@@ -1,0 +1,20 @@
+{
+  "meta_version": "1.0",
+  "category": "Standard_Category_Name",
+  "narrative_dna": {
+    "intensity_range": [0, 10],
+    "perspective": "First_Person | Third_Person",
+    "pacing": "Fast | Balanced | Slow",
+    "cliffhanger_style": "Information_Gap | Emotional_Tension | Choice_Branch"
+  },
+  "behavioral_logic": {
+    "dwell_threshold_ms": 8000,
+    "on_slow_read": "instruction_to_increase_depth",
+    "on_fast_swipe": "instruction_to_trigger_hook"
+  },
+  "lexical_weights": {
+    "keyword_a": 0.9,
+    "keyword_b": 0.7
+  },
+  "psychological_triggers": ["Trigger_A", "Trigger_B"]
+}
