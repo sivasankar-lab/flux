@@ -1,194 +1,152 @@
 package com.example.socialmedia_poc.service;
 
 import com.example.socialmedia_poc.model.User;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.example.socialmedia_poc.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
-    private final ObjectMapper objectMapper;
-    private final Path usersFilePath;
-    private final Path userDataDir;
 
-    public UserService() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        
-        this.usersFilePath = Paths.get("src/main/resources/users.json");
-        this.userDataDir = Paths.get("src/main/resources/user-data");
-        
-        try {
-            Files.createDirectories(userDataDir);
-            if (!Files.exists(usersFilePath)) {
-                objectMapper.writeValue(usersFilePath.toFile(), new ArrayList<User>());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final InterestProfileService interestProfileService;
+
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
+                       InterestProfileService interestProfileService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.interestProfileService = interestProfileService;
     }
 
     // Create new user
-    public User createUser(String username, String email, String displayName) throws IOException {
-        List<User> users = getAllUsers();
-        
-        // Check if username or email already exists
-        boolean exists = users.stream()
-            .anyMatch(u -> u.getUsername().equalsIgnoreCase(username) || 
-                          u.getEmail().equalsIgnoreCase(email));
-        
-        if (exists) {
+    @Transactional
+    public User createUser(String username, String email, String displayName, String password) {
+        if (userRepository.existsByUsernameIgnoreCaseOrEmailIgnoreCase(username, email)) {
             throw new IllegalArgumentException("Username or email already exists");
         }
-        
+
         User newUser = new User(username, email, displayName);
+        newUser.setPasswordHash(passwordEncoder.encode(password));
         newUser.setSessionToken(generateSessionToken());
-        
-        users.add(newUser);
-        saveUsers(users);
-        
-        // Create user-specific directories
-        createUserDirectories(newUser.getUserId());
-        
-        return newUser;
+        return userRepository.save(newUser);
     }
 
     // Login user
-    public User loginUser(String username) throws IOException {
-        List<User> users = getAllUsers();
-        
-        Optional<User> userOpt = users.stream()
-            .filter(u -> u.getUsername().equalsIgnoreCase(username))
-            .findFirst();
-        
-        if (userOpt.isEmpty()) {
-            throw new IllegalArgumentException("User not found");
+    @Transactional
+    public User loginUser(String username, String password) {
+        User user = userRepository.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+
+        if (user.getPasswordHash() == null || user.getPasswordHash().isEmpty()) {
+            // Legacy user (no password set) — auto-migrate on first login
+            user.setPasswordHash(passwordEncoder.encode(password));
+        } else {
+            if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+                throw new IllegalArgumentException("Invalid credentials");
+            }
         }
-        
-        User user = userOpt.get();
+
         user.setLastLogin(Instant.now());
         user.setSessionToken(generateSessionToken());
-        
-        saveUsers(users);
-        
-        return user;
+        return userRepository.save(user);
     }
 
     // Validate session token
-    public User validateSession(String sessionToken) throws IOException {
-        List<User> users = getAllUsers();
-        
-        return users.stream()
-            .filter(u -> sessionToken.equals(u.getSessionToken()))
-            .findFirst()
-            .orElse(null);
+    public User validateSession(String sessionToken) {
+        return userRepository.findBySessionToken(sessionToken).orElse(null);
     }
 
     // Get user by ID
-    public User getUserById(String userId) throws IOException {
-        List<User> users = getAllUsers();
-        
-        return users.stream()
-            .filter(u -> userId.equals(u.getUserId()))
-            .findFirst()
-            .orElse(null);
+    public User getUserById(String userId) {
+        return userRepository.findById(userId).orElse(null);
     }
 
     // Get user by username
-    public User getUserByUsername(String username) throws IOException {
-        List<User> users = getAllUsers();
-        
-        return users.stream()
-            .filter(u -> username.equalsIgnoreCase(u.getUsername()))
-            .findFirst()
-            .orElse(null);
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsernameIgnoreCase(username).orElse(null);
     }
 
     // Logout user
-    public void logoutUser(String sessionToken) throws IOException {
-        List<User> users = getAllUsers();
-        
-        users.stream()
-            .filter(u -> sessionToken.equals(u.getSessionToken()))
-            .findFirst()
-            .ifPresent(u -> u.setSessionToken(null));
-        
-        saveUsers(users);
+    @Transactional
+    public void logoutUser(String sessionToken) {
+        userRepository.findBySessionToken(sessionToken)
+                .ifPresent(user -> {
+                    user.setSessionToken(null);
+                    userRepository.save(user);
+                });
+    }
+
+    // Login or create user via Google Sign-In
+    @Transactional
+    public User loginOrCreateGoogleUser(String googleId, String email, String displayName, String pictureUrl) {
+        // 1. Check if user already linked by Google ID
+        User user = userRepository.findByGoogleId(googleId).orElse(null);
+        if (user != null) {
+            user.setLastLogin(Instant.now());
+            user.setSessionToken(generateSessionToken());
+            if (pictureUrl != null) user.setProfilePictureUrl(pictureUrl);
+            return userRepository.save(user);
+        }
+
+        // 2. Check if existing user has same email — link accounts
+        user = userRepository.findByEmailIgnoreCase(email).orElse(null);
+        if (user != null) {
+            user.setGoogleId(googleId);
+            user.setAuthProvider("BOTH");
+            user.setLastLogin(Instant.now());
+            user.setSessionToken(generateSessionToken());
+            if (pictureUrl != null) user.setProfilePictureUrl(pictureUrl);
+            return userRepository.save(user);
+        }
+
+        // 3. Brand new Google user
+        String autoUsername = "google_" + System.currentTimeMillis();
+        User newUser = new User(autoUsername, email, displayName != null ? displayName : autoUsername);
+        newUser.setGoogleId(googleId);
+        newUser.setAuthProvider("GOOGLE");
+        newUser.setProfilePictureUrl(pictureUrl);
+        newUser.setSessionToken(generateSessionToken());
+        return userRepository.save(newUser);
+    }
+
+    // Update user role (admin function)
+    @Transactional
+    public User updateUserRole(String userId, String role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setRole(role);
+        return userRepository.save(user);
     }
 
     // Get all users (admin function)
-    public List<User> getAllUsers() throws IOException {
-        File file = usersFilePath.toFile();
-        if (!file.exists()) {
-            return new ArrayList<>();
-        }
-        return objectMapper.readValue(file, new TypeReference<List<User>>() {});
-    }
-
-    // Save users to file
-    private void saveUsers(List<User> users) throws IOException {
-        objectMapper.writerWithDefaultPrettyPrinter()
-            .writeValue(usersFilePath.toFile(), users);
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
     // Generate session token
     private String generateSessionToken() {
-        return "session_" + System.currentTimeMillis() + "_" + 
-               UUID.randomUUID().toString().replace("-", "");
+        return "session_" + System.currentTimeMillis() + "_" +
+                UUID.randomUUID().toString().replace("-", "");
     }
 
-    // Create user-specific directories
-    private void createUserDirectories(String userId) throws IOException {
-        Path userDir = userDataDir.resolve(userId);
-        Files.createDirectories(userDir);
-        
-        // Initialize empty JSON files for user
-        Path interactionsFile = userDir.resolve("interactions.json");
-        Path nextSeedsFile = userDir.resolve("next-seeds.json");
-        Path wallFile = userDir.resolve("wall.json");
-        
-        if (!Files.exists(interactionsFile)) {
-            objectMapper.writeValue(interactionsFile.toFile(), new ArrayList<>());
-        }
-        
-        if (!Files.exists(nextSeedsFile)) {
-            objectMapper.writeValue(nextSeedsFile.toFile(), new ArrayList<>());
-        }
-        
-        if (!Files.exists(wallFile)) {
-            objectMapper.writeValue(wallFile.toFile(), new ArrayList<>());
-        }
-    }
+    // Save user interests from onboarding
+    @Transactional
+    public User saveInterests(String userId, List<String> interests) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setInterests(interests);
+        user.setOnboarded(true);
+        User savedUser = userRepository.save(user);
 
-    // Get user data directory path
-    public Path getUserDataDirectory(String userId) {
-        return userDataDir.resolve(userId);
-    }
+        // Pre-seed the interest profile from selected topics
+        interestProfileService.initializeFromInterests(userId, interests);
 
-    // Get user interactions file path
-    public Path getUserInteractionsFile(String userId) {
-        return getUserDataDirectory(userId).resolve("interactions.json");
-    }
-
-    // Get user next-seeds file path
-    public Path getUserNextSeedsFile(String userId) {
-        return getUserDataDirectory(userId).resolve("next-seeds.json");
-    }
-
-    // Get user wall file path
-    public Path getUserWallFile(String userId) {
-        return getUserDataDirectory(userId).resolve("wall.json");
+        return savedUser;
     }
 }

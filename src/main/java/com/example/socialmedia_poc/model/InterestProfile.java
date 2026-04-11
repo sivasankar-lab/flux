@@ -1,6 +1,9 @@
 package com.example.socialmedia_poc.model;
 
+import com.example.socialmedia_poc.config.JpaConverters;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.persistence.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,55 +12,78 @@ import java.util.Map;
  * Precise user interest profile built from interaction signals.
  * Recalculated periodically (every N interactions).
  */
+@Entity
+@Table(name = "interest_profiles")
 public class InterestProfile {
 
+    @Id
+    @Column(name = "user_id")
     @JsonProperty("user_id")
     private String userId;
 
     /** Category → score (0.0 – 1.0). Higher = stronger interest. */
+    @Column(name = "category_scores", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.StringDoubleMapConverter.class)
     @JsonProperty("category_scores")
     private Map<String, Double> categoryScores = new HashMap<>();
 
     /** Category → number of likes. */
+    @Column(name = "category_likes", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.StringIntegerMapConverter.class)
     @JsonProperty("category_likes")
     private Map<String, Integer> categoryLikes = new HashMap<>();
 
     /** Category → number of skips. */
+    @Column(name = "category_skips", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.StringIntegerMapConverter.class)
     @JsonProperty("category_skips")
     private Map<String, Integer> categorySkips = new HashMap<>();
 
     /** Category → total dwell time in ms. */
+    @Column(name = "category_dwell_ms", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.StringLongMapConverter.class)
     @JsonProperty("category_dwell_ms")
     private Map<String, Long> categoryDwellMs = new HashMap<>();
 
     /** Category → number of interactions. */
+    @Column(name = "category_interaction_count", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.StringIntegerMapConverter.class)
     @JsonProperty("category_interaction_count")
     private Map<String, Integer> categoryInteractionCount = new HashMap<>();
 
+    @Column(name = "preferred_pacing")
     @JsonProperty("preferred_pacing")
-    private String preferredPacing = "moderate"; // fast / moderate / slow
+    private String preferredPacing = "moderate";
 
+    @Column(name = "content_length_pref")
     @JsonProperty("content_length_pref")
-    private String contentLengthPref = "medium"; // short / medium / long
+    private String contentLengthPref = "medium";
 
+    @Column(name = "avg_session_depth")
     @JsonProperty("avg_session_depth")
     private int avgSessionDepth;
 
+    @Column(name = "total_interactions")
     @JsonProperty("total_interactions")
     private int totalInteractions;
 
+    @Column(name = "total_likes")
     @JsonProperty("total_likes")
     private int totalLikes;
 
+    @Column(name = "total_skips")
     @JsonProperty("total_skips")
     private int totalSkips;
 
+    @Column(name = "consecutive_skips")
     @JsonProperty("consecutive_skips")
     private int consecutiveSkips;
 
+    @Column(name = "last_updated")
     @JsonProperty("last_updated")
     private Instant lastUpdated;
 
+    @Column(name = "interaction_count_at_last_update")
     @JsonProperty("interaction_count_at_last_update")
     private int interactionCountAtLastUpdate;
 

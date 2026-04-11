@@ -4,7 +4,6 @@ import com.example.socialmedia_poc.model.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,7 +46,7 @@ public class GenerationTriggerService {
      * Returns a TriggerResult describing what (if anything) should happen.
      */
     public TriggerResult evaluate(String userId, Interaction latestInteraction,
-                                   InterestProfile profile, Set<String> seenPostIds) throws IOException {
+                                   InterestProfile profile, Set<String> seenPostIds) {
         // 1. ENGAGEMENT_DROP: 3 consecutive skips
         if (profile.getConsecutiveSkips() >= 3) {
             return handleEngagementDrop(userId, profile, seenPostIds);
@@ -114,7 +113,7 @@ public class GenerationTriggerService {
     /**
      * Detect "deep interest": 3+ likes in the same category in recent interactions (last 20).
      */
-    private String detectDeepInterest(String userId) throws IOException {
+    private String detectDeepInterest(String userId) {
         List<Interaction> interactions = interactionService.loadInteractions(userId);
         if (interactions.size() < 3) return null;
 
@@ -139,7 +138,7 @@ public class GenerationTriggerService {
     /**
      * Check if <5 unseen pool posts match the user's top interests.
      */
-    private boolean isPoolExhausted(InterestProfile profile, Set<String> seenPostIds) throws IOException {
+    private boolean isPoolExhausted(InterestProfile profile, Set<String> seenPostIds) {
         List<String> topCategories = profile.getCategoryScores().entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .limit(3)

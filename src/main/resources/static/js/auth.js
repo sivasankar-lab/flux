@@ -6,8 +6,16 @@ if (sessionToken) {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Session is valid, redirect to feed
-                window.location.href = '/index.html';
+                // Session is valid, redirect based on role
+                const user = data.user;
+                localStorage.setItem('flux_user', JSON.stringify(user));
+                if (!user.onboarded) {
+                    window.location.href = '/onboard.html';
+                } else if (user.role === 'ADMIN') {
+                    window.location.href = '/admin.html';
+                } else {
+                    window.location.href = '/index.html';
+                }
             } else {
                 // Invalid session, clear it
                 localStorage.removeItem('flux_session_token');
@@ -18,6 +26,69 @@ if (sessionToken) {
         .catch(error => {
             console.error('Session validation error:', error);
         });
+}
+
+// ── Google Sign-In setup ──
+async function initGoogleSignIn() {
+    try {
+        const res = await fetch('/v1/config/public');
+        const config = await res.json();
+        if (config.google_sign_in_enabled && config.google_client_id) {
+            google.accounts.id.initialize({
+                client_id: config.google_client_id,
+                callback: handleGoogleCredentialResponse
+            });
+            google.accounts.id.renderButton(
+                document.getElementById('googleSignInBtn'),
+                { theme: 'outline', size: 'large', width: 320, text: 'signin_with' }
+            );
+            document.getElementById('googleBtnWrapper').classList.add('visible');
+        }
+    } catch (e) {
+        console.log('Google Sign-In not available:', e.message);
+    }
+}
+
+async function handleGoogleCredentialResponse(response) {
+    hideMessages();
+    try {
+        const res = await fetch('/v1/users/google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_token: response.credential })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            localStorage.setItem('flux_session_token', data.user.session_token);
+            localStorage.setItem('flux_user_id', data.user.user_id);
+            localStorage.setItem('flux_user', JSON.stringify(data.user));
+            showSuccess('Google login successful! Redirecting...');
+            setTimeout(() => {
+                if (!data.user.onboarded) {
+                    window.location.href = '/onboard.html';
+                } else if (data.user.role === 'ADMIN') {
+                    window.location.href = '/admin.html';
+                } else {
+                    window.location.href = '/index.html';
+                }
+            }, 1000);
+        } else {
+            showError(data.message || 'Google login failed');
+        }
+    } catch (error) {
+        console.error('Google login error:', error);
+        showError('Failed to connect to server');
+    }
+}
+
+// Initialize Google Sign-In when GIS script is loaded
+if (typeof google !== 'undefined' && google.accounts) {
+    initGoogleSignIn();
+} else {
+    window.addEventListener('load', () => {
+        // Give GIS script a moment to load
+        setTimeout(initGoogleSignIn, 500);
+    });
 }
 
 const loginForm = document.getElementById('loginForm');
@@ -56,9 +127,15 @@ loginForm.addEventListener('submit', async (e) => {
     hideMessages();
     
     const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
     
     if (!username) {
         showError('Please enter your username');
+        return;
+    }
+    
+    if (!password) {
+        showError('Please enter your password');
         return;
     }
     
@@ -71,7 +148,7 @@ loginForm.addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username })
+            body: JSON.stringify({ username, password })
         });
         
         const data = await response.json();
@@ -84,9 +161,15 @@ loginForm.addEventListener('submit', async (e) => {
             
             showSuccess('Login successful! Redirecting...');
             
-            // Redirect to feed
+            // Redirect based on onboarded status and role
             setTimeout(() => {
-                window.location.href = '/index.html';
+                if (!data.user.onboarded) {
+                    window.location.href = '/onboard.html';
+                } else if (data.user.role === 'ADMIN') {
+                    window.location.href = '/admin.html';
+                } else {
+                    window.location.href = '/index.html';
+                }
             }, 1000);
         } else {
             showError(data.message || 'Login failed');
@@ -109,8 +192,9 @@ registerForm.addEventListener('submit', async (e) => {
     const username = document.getElementById('registerUsername').value.trim();
     const email = document.getElementById('registerEmail').value.trim();
     const displayName = document.getElementById('registerDisplayName').value.trim();
+    const password = document.getElementById('registerPassword').value;
     
-    if (!username || !email || !displayName) {
+    if (!username || !email || !displayName || !password) {
         showError('Please fill in all fields');
         return;
     }
@@ -127,7 +211,8 @@ registerForm.addEventListener('submit', async (e) => {
             body: JSON.stringify({
                 username,
                 email,
-                display_name: displayName
+                display_name: displayName,
+                password
             })
         });
         
@@ -141,9 +226,9 @@ registerForm.addEventListener('submit', async (e) => {
             
             showSuccess('Account created! Redirecting...');
             
-            // Redirect to feed
+            // New users always go to onboarding
             setTimeout(() => {
-                window.location.href = '/index.html';
+                window.location.href = '/onboard.html';
             }, 1000);
         } else {
             showError(data.message || 'Registration failed');

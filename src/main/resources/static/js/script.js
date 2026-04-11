@@ -24,6 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Update user info
             localStorage.setItem('flux_user', JSON.stringify(data.user));
+
+            // Redirect to onboarding if not completed
+            if (!data.user.onboarded) {
+                window.location.href = '/onboard.html';
+                return;
+            }
+
             updateUserProfile(data.user);
         })
         .catch(error => {
@@ -41,6 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // User ID from authenticated session
     const userId = storedUserId;
+
+    // Authenticated fetch helper — injects Bearer token on every request
+    function authFetch(url, options = {}) {
+        if (!options.headers) options.headers = {};
+        options.headers['Authorization'] = 'Bearer ' + sessionToken;
+        return fetch(url, options);
+    }
     
     let allSeeds = [];
     let cardsRendered = 0;
@@ -68,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sessionToken = localStorage.getItem('flux_session_token');
         
         if (sessionToken) {
-            fetch('/v1/users/logout', {
+            authFetch('/v1/users/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -112,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch('/v1/interactions/record', {
+            const response = await authFetch('/v1/interactions/record', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -234,6 +248,17 @@ document.addEventListener('DOMContentLoaded', () => {
         dwellObserver.observe(card);
     };
 
+    // HTML escape for card content
+    function escapeHtmlCard(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+    function escapeTag(str) {
+        return escapeHtmlCard(str).replace(/[^a-zA-Z0-9 &;]/g, '');
+    }
+
     // Create card element
     const createCard = (seedData, index) => {
         const card = document.createElement('div');
@@ -249,11 +274,18 @@ document.addEventListener('DOMContentLoaded', () => {
             content = seedData;
         }
 
-        const lines = content.trim().split('\n').filter(line => line.length > 0);
-        const title = (lines.length > 1 && lines[0].length < 80) ? lines.shift() : 'A Glimpse of the Stream';
-        const body = lines.join('<br>');
+        // Clean up content — join multi-line into single flowing text
+        const fullText = content.trim().split('\n').filter(l => l.length > 0).join(' ');
 
-        // Add like button and category badge
+        // Estimate reading time
+        const wordCount = fullText.split(/\s+/).length;
+        const readMin = Math.max(1, Math.round(wordCount / 200));
+
+        // Tags (up to 2)
+        const tags = (seedData.tags || []).slice(0, 2);
+        const tagHtml = tags.map(t => `<span class="tag-pill">${escapeTag(t)}</span>`).join('');
+
+        // Source badge
         const sourceBadge = seedData.source === 'GENERATED' 
             ? `<span class="source-badge generated">AI Generated</span>` 
             : '';
@@ -268,8 +300,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </svg>
                 </button>
             </div>
-            <h2>${title}</h2>
-            <p>${body}</p>
+            <div class="card-body">${escapeHtmlCard(fullText)}</div>
+            <div class="card-footer">
+                <span class="read-time">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    ${readMin} min read
+                </span>
+                <span class="tag-list">${tagHtml}</span>
+            </div>
         `;
         
         // Add like button handler
@@ -318,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             seedId: post.post_id || post.seedId || post.postId || ('seed_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
             content: post.content || '',
             category: post.category || 'General',
+            tags: post.tags || [],
             metaConfig: post.meta_config || post.metaConfig || null,
             source: post.source || 'SEED',
             batch: post.batch || 1
@@ -332,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             skeletons.forEach(skeleton => skeleton.remove());
 
             // Load from user's wall API
-            const response = await fetch(`/v1/wall/${userId}`);
+            const response = await authFetch(`/v1/wall/${userId}`);
             if (response.ok) {
                 const data = await response.json();
                 const posts = data.posts || [];
@@ -341,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Fallback: if wall is empty, try seeds API directly
             if (!allSeeds || allSeeds.length === 0) {
-                const fallback = await fetch('/v1/seeds/with-meta?limit=15');
+                const fallback = await authFetch('/v1/seeds/with-meta?limit=15');
                 if (fallback.ok) {
                     allSeeds = await fallback.json();
                 }
@@ -376,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
         generateSeedsBtn.disabled = true;
 
         try {
-            const response = await fetch('/v1/seeds/generate', { method: 'POST' });
+            const response = await authFetch('/v1/seeds/generate', { method: 'POST' });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -405,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Generate next batch via wall API
-            const response = await fetch(`/v1/wall/${userId}/next`, { method: 'POST' });
+            const response = await authFetch(`/v1/wall/${userId}/next`, { method: 'POST' });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -521,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             const fullCategory = categoryMap[category] || category;
-            const response = await fetch(`/v1/seeds/by-category/${encodeURIComponent(fullCategory)}`);
+            const response = await authFetch(`/v1/seeds/by-category/${encodeURIComponent(fullCategory)}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

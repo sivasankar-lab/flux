@@ -2,15 +2,10 @@ package com.example.socialmedia_poc.service;
 
 import com.example.socialmedia_poc.model.Interaction;
 import com.example.socialmedia_poc.model.InterestProfile;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.example.socialmedia_poc.repository.InterestProfileRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,15 +21,12 @@ public class InterestProfileService {
     /** Recency weight: interactions within the last N hours are weighted 2x. */
     private static final long RECENCY_HOURS = 24;
 
-    private final ObjectMapper mapper;
-    private final UserService userService;
+    private final InterestProfileRepository profileRepository;
     private final InteractionService interactionService;
 
-    public InterestProfileService(UserService userService, InteractionService interactionService) {
-        this.mapper = new ObjectMapper();
-        this.mapper.registerModule(new JavaTimeModule());
-        this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        this.userService = userService;
+    public InterestProfileService(InterestProfileRepository profileRepository,
+                                  InteractionService interactionService) {
+        this.profileRepository = profileRepository;
         this.interactionService = interactionService;
     }
 
@@ -43,16 +35,9 @@ public class InterestProfileService {
     // ──────────────────────────────────────────────
 
     /** Load or create the user's interest profile. */
-    public InterestProfile getProfile(String userId) throws IOException {
-        Path path = profilePath(userId);
-        if (Files.exists(path)) {
-            try {
-                return mapper.readValue(path.toFile(), InterestProfile.class);
-            } catch (IOException e) {
-                // Corrupted file, rebuild
-            }
-        }
-        return rebuildProfile(userId);
+    public InterestProfile getProfile(String userId) {
+        return profileRepository.findById(userId)
+                .orElseGet(() -> rebuildProfile(userId));
     }
 
     /**
@@ -61,7 +46,8 @@ public class InterestProfileService {
      *
      * Returns the updated profile.
      */
-    public InterestProfile onInteraction(String userId, Interaction interaction) throws IOException {
+    @Transactional
+    public InterestProfile onInteraction(String userId, Interaction interaction) {
         InterestProfile profile = getProfile(userId);
 
         // Incremental update for consecutive-skip tracking
@@ -78,7 +64,7 @@ public class InterestProfileService {
         if (sinceLastCalc >= RECALC_INTERVAL) {
             profile = rebuildProfile(userId);
         } else {
-            saveProfile(userId, profile);
+            profileRepository.save(profile);
         }
 
         return profile;
@@ -87,12 +73,14 @@ public class InterestProfileService {
     /**
      * Full rebuild of the profile from all interactions.
      */
-    public InterestProfile rebuildProfile(String userId) throws IOException {
+    @Transactional
+    public InterestProfile rebuildProfile(String userId) {
         List<Interaction> interactions = interactionService.loadInteractions(userId);
-        InterestProfile profile = new InterestProfile(userId);
+        InterestProfile profile = profileRepository.findById(userId)
+                .orElse(new InterestProfile(userId));
 
         if (interactions.isEmpty()) {
-            saveProfile(userId, profile);
+            profileRepository.save(profile);
             return profile;
         }
 
@@ -196,7 +184,7 @@ public class InterestProfileService {
         profile.setLastUpdated(Instant.now());
         profile.setInteractionCountAtLastUpdate(interactions.size());
 
-        saveProfile(userId, profile);
+        profileRepository.save(profile);
         return profile;
     }
 
@@ -204,30 +192,17 @@ public class InterestProfileService {
      * Find users with similar interest profiles (category score overlap > threshold).
      * Returns user IDs sorted by similarity (highest first).
      */
-    public List<String> findSimilarUsers(String userId, double threshold) throws IOException {
+    public List<String> findSimilarUsers(String userId, double threshold) {
         InterestProfile target = getProfile(userId);
-        Path userDataDir = userService.getUserDataDirectory(userId).getParent();
-
-        if (!Files.exists(userDataDir)) return Collections.emptyList();
+        List<InterestProfile> allProfiles = profileRepository.findAll();
 
         List<Map.Entry<String, Double>> similarities = new ArrayList<>();
-
-        try (var stream = Files.list(userDataDir)) {
-            stream.filter(Files::isDirectory).forEach(dir -> {
-                String otherUserId = dir.getFileName().toString();
-                if (otherUserId.equals(userId)) return;
-
-                Path profileFile = dir.resolve("interest-profile.json");
-                if (!Files.exists(profileFile)) return;
-
-                try {
-                    InterestProfile other = mapper.readValue(profileFile.toFile(), InterestProfile.class);
-                    double similarity = computeSimilarity(target, other);
-                    if (similarity >= threshold) {
-                        similarities.add(new AbstractMap.SimpleEntry<>(otherUserId, similarity));
-                    }
-                } catch (IOException ignored) {}
-            });
+        for (InterestProfile other : allProfiles) {
+            if (userId.equals(other.getUserId())) continue;
+            double similarity = computeSimilarity(target, other);
+            if (similarity >= threshold) {
+                similarities.add(new AbstractMap.SimpleEntry<>(other.getUserId(), similarity));
+            }
         }
 
         return similarities.stream()
@@ -261,16 +236,75 @@ public class InterestProfileService {
     }
 
     // ──────────────────────────────────────────────
-    // Persistence
+    // Topic → Category mapping
     // ──────────────────────────────────────────────
 
-    private Path profilePath(String userId) {
-        return userService.getUserDataDirectory(userId).resolve("interest-profile.json");
+    /** Maps selected interest topics back to parent categories and pre-seeds the profile. */
+    @Transactional
+    public InterestProfile initializeFromInterests(String userId, List<String> selectedTopics) {
+        InterestProfile profile = profileRepository.findById(userId)
+                .orElse(new InterestProfile(userId));
+
+        // Map: topic → parent category
+        Map<String, String> topicToCategory = buildTopicToCategoryMap();
+
+        // Count how many topics the user selected per category
+        Map<String, Integer> categoryHits = new HashMap<>();
+        Map<String, Integer> categoryTotal = new HashMap<>();
+        for (Map.Entry<String, String> entry : topicToCategory.entrySet()) {
+            categoryTotal.merge(entry.getValue(), 1, Integer::sum);
+        }
+        for (String topic : selectedTopics) {
+            String cat = topicToCategory.get(topic);
+            if (cat != null) {
+                categoryHits.merge(cat, 1, Integer::sum);
+            }
+        }
+
+        // Compute initial category scores: selected categories get 0.5-1.0 proportional to
+        // how many topics were picked within them; unselected categories get 0.1
+        Map<String, Double> scores = new HashMap<>();
+        for (String cat : categoryTotal.keySet()) {
+            int hits = categoryHits.getOrDefault(cat, 0);
+            if (hits > 0) {
+                int total = categoryTotal.get(cat);
+                // Scale from 0.5 (1 topic) to 1.0 (all topics)
+                double ratio = (double) hits / total;
+                scores.put(cat, 0.5 + 0.5 * ratio);
+            } else {
+                scores.put(cat, 0.1);
+            }
+        }
+
+        profile.setCategoryScores(scores);
+        profile.setLastUpdated(Instant.now());
+        profileRepository.save(profile);
+        return profile;
     }
 
-    private void saveProfile(String userId, InterestProfile profile) throws IOException {
-        Path path = profilePath(userId);
-        Files.createDirectories(path.getParent());
-        mapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), profile);
+    /** Build topic→category mapping from the interest-topics.json resource. */
+    private Map<String, String> buildTopicToCategoryMap() {
+        Map<String, String> map = new HashMap<>();
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.io.InputStream is = getClass().getResourceAsStream("/interest-topics.json");
+            if (is == null) return map;
+            com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(is);
+            com.fasterxml.jackson.databind.JsonNode categories = root.get("categories");
+            if (categories != null && categories.isArray()) {
+                for (com.fasterxml.jackson.databind.JsonNode cat : categories) {
+                    String catName = cat.get("name").asText();
+                    com.fasterxml.jackson.databind.JsonNode topics = cat.get("topics");
+                    if (topics != null && topics.isArray()) {
+                        for (com.fasterxml.jackson.databind.JsonNode topic : topics) {
+                            map.put(topic.asText(), catName);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // fallback: return empty map
+        }
+        return map;
     }
 }

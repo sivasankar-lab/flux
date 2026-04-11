@@ -28,7 +28,7 @@ public class HuggingFaceService implements LLMService {
 
     public HuggingFaceService(WebClient.Builder webClientBuilder,
                               @Value("${huggingface.api-key:}") String apiKey,
-                              @Value("${huggingface.model:zai-org/GLM-5:novita}") String model,
+                              @Value("${huggingface.model:meta-llama/Llama-3.3-70B-Instruct}") String model,
                               @Value("${huggingface.baseurl:https://router.huggingface.co}") String baseUrl) {
         this.model = model;
         this.webClient = webClientBuilder

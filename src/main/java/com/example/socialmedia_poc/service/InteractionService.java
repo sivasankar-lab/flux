@@ -1,74 +1,41 @@
 package com.example.socialmedia_poc.service;
 
 import com.example.socialmedia_poc.model.Interaction;
-import com.example.socialmedia_poc.model.Meta;
-import com.example.socialmedia_poc.model.SeedWithMeta;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.example.socialmedia_poc.repository.InteractionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class InteractionService {
 
-    private final ObjectMapper mapper;
-    private final UserService userService;
+    private final InteractionRepository interactionRepository;
 
-    public InteractionService(UserService userService) {
-        this.mapper = new ObjectMapper();
-        this.mapper.registerModule(new JavaTimeModule());
-        this.userService = userService;
+    public InteractionService(InteractionRepository interactionRepository) {
+        this.interactionRepository = interactionRepository;
     }
 
-    public void recordInteraction(Interaction interaction) throws IOException {
-        String userId = interaction.getUserId();
-        List<Interaction> interactions = loadInteractions(userId);
-        interactions.add(interaction);
-        saveInteractions(userId, interactions);
-    }
-
-    public List<Interaction> loadInteractions(String userId) throws IOException {
-        Path interactionsPath = userService.getUserInteractionsFile(userId);
-        
-        if (!Files.exists(interactionsPath)) {
-            // Create user directory and file if it doesn't exist
-            Files.createDirectories(interactionsPath.getParent());
-            Files.writeString(interactionsPath, "[]");
-            return new ArrayList<>();
+    @Transactional
+    public void recordInteraction(Interaction interaction) {
+        if (interaction.getTimestamp() == null) {
+            interaction.setTimestamp(java.time.Instant.now());
         }
-        
-        try {
-            return mapper.readValue(interactionsPath.toFile(), new TypeReference<List<Interaction>>(){});
-        } catch (IOException e) {
-            return new ArrayList<>();
-        }
+        interactionRepository.save(interaction);
     }
 
-    public List<Interaction> getUserInteractions(String userId) throws IOException {
+    public List<Interaction> loadInteractions(String userId) {
+        return interactionRepository.findByUserIdOrderByTimestampAsc(userId);
+    }
+
+    public List<Interaction> getUserInteractions(String userId) {
         return loadInteractions(userId);
     }
 
-    private void saveInteractions(String userId, List<Interaction> interactions) throws IOException {
-        Path interactionsPath = userService.getUserInteractionsFile(userId);
-        
-        if (!Files.exists(interactionsPath.getParent())) {
-            Files.createDirectories(interactionsPath.getParent());
-        }
-        mapper.writerWithDefaultPrettyPrinter().writeValue(interactionsPath.toFile(), interactions);
-    }
-
-    public UserPreference analyzeUserPreference(String userId) throws IOException {
+    public UserPreference analyzeUserPreference(String userId) {
         List<Interaction> userInteractions = getUserInteractions(userId);
-        
+
         if (userInteractions.isEmpty()) {
             return new UserPreference();
         }
@@ -82,10 +49,10 @@ public class InteractionService {
             String category = interaction.getCategory();
             if (category != null) {
                 categoryScores.put(category, categoryScores.getOrDefault(category, 0) + 1);
-                
+
                 if (interaction.getDwellTimeMs() != null) {
-                    categoryDwellTime.put(category, 
-                        categoryDwellTime.getOrDefault(category, 0L) + interaction.getDwellTimeMs());
+                    categoryDwellTime.put(category,
+                            categoryDwellTime.getOrDefault(category, 0L) + interaction.getDwellTimeMs());
                 }
             }
 
@@ -99,18 +66,18 @@ public class InteractionService {
 
         UserPreference preference = new UserPreference();
         preference.setPreferredCategories(
-            categoryScores.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(3)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList())
+                categoryScores.entrySet().stream()
+                        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                        .limit(3)
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList())
         );
 
         // Determine preferred pacing based on dwell time
         long avgDwellTime = categoryDwellTime.values().stream()
-            .mapToLong(Long::longValue)
-            .sum() / Math.max(categoryDwellTime.size(), 1);
-        
+                .mapToLong(Long::longValue)
+                .sum() / Math.max(categoryDwellTime.size(), 1);
+
         if (avgDwellTime > 8000) {
             preference.setPreferredPacing("Slow");
             preference.setPreferredDepth("deep");
@@ -127,56 +94,9 @@ public class InteractionService {
         return preference;
     }
 
-    public List<SeedWithMeta> loadNextSeeds(String userId) throws IOException {
-        Path nextSeedsPath = userService.getUserNextSeedsFile(userId);
-        
-        if (!Files.exists(nextSeedsPath)) {
-            return new ArrayList<>();
-        }
-        
-        try {
-            return mapper.readValue(nextSeedsPath.toFile(), new TypeReference<List<SeedWithMeta>>(){});
-        } catch (IOException e) {
-            return new ArrayList<>();
-        }
-    }
-
-    public void saveNextSeeds(String userId, List<SeedWithMeta> seeds) throws IOException {
-        Path nextSeedsPath = userService.getUserNextSeedsFile(userId);
-        
-        if (!Files.exists(nextSeedsPath.getParent())) {
-            Files.createDirectories(nextSeedsPath.getParent());
-        }
-        mapper.writerWithDefaultPrettyPrinter().writeValue(nextSeedsPath.toFile(), seeds);
-    }
-    
     // Load all interactions across all users (for stats)
-    public List<Interaction> loadAllInteractions() throws IOException {
-        List<Interaction> allInteractions = new ArrayList<>();
-        Path userDataDir = Paths.get("src/main/resources/user-data");
-        
-        if (!Files.exists(userDataDir)) {
-            return allInteractions;
-        }
-        
-        try (var stream = Files.list(userDataDir)) {
-            stream.filter(Files::isDirectory).forEach(userDir -> {
-                Path interactionsFile = userDir.resolve("interactions.json");
-                if (Files.exists(interactionsFile)) {
-                    try {
-                        List<Interaction> userInteractions = mapper.readValue(
-                            interactionsFile.toFile(), 
-                            new TypeReference<List<Interaction>>(){}
-                        );
-                        allInteractions.addAll(userInteractions);
-                    } catch (IOException e) {
-                        // Skip this user's interactions if there's an error
-                    }
-                }
-            });
-        }
-        
-        return allInteractions;
+    public List<Interaction> loadAllInteractions() {
+        return interactionRepository.findAll();
     }
 
     public static class UserPreference {
@@ -185,36 +105,16 @@ public class InteractionService {
         private String preferredDepth = "moderate";
         private String engagementLevel = "medium";
 
-        public List<String> getPreferredCategories() {
-            return preferredCategories;
-        }
+        public List<String> getPreferredCategories() { return preferredCategories; }
+        public void setPreferredCategories(List<String> preferredCategories) { this.preferredCategories = preferredCategories; }
 
-        public void setPreferredCategories(List<String> preferredCategories) {
-            this.preferredCategories = preferredCategories;
-        }
+        public String getPreferredPacing() { return preferredPacing; }
+        public void setPreferredPacing(String preferredPacing) { this.preferredPacing = preferredPacing; }
 
-        public String getPreferredPacing() {
-            return preferredPacing;
-        }
+        public String getPreferredDepth() { return preferredDepth; }
+        public void setPreferredDepth(String preferredDepth) { this.preferredDepth = preferredDepth; }
 
-        public void setPreferredPacing(String preferredPacing) {
-            this.preferredPacing = preferredPacing;
-        }
-
-        public String getPreferredDepth() {
-            return preferredDepth;
-        }
-
-        public void setPreferredDepth(String preferredDepth) {
-            this.preferredDepth = preferredDepth;
-        }
-
-        public String getEngagementLevel() {
-            return engagementLevel;
-        }
-
-        public void setEngagementLevel(String engagementLevel) {
-            this.engagementLevel = engagementLevel;
-        }
+        public String getEngagementLevel() { return engagementLevel; }
+        public void setEngagementLevel(String engagementLevel) { this.engagementLevel = engagementLevel; }
     }
 }

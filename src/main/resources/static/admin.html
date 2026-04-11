@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flux Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-layout {
+            min-height: 100vh;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .admin-header .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .admin-header .header-actions span {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(26, 26, 46, 0.5);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .stat-card .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom: 2px solid var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Tables */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-table th {
+            background: rgba(26, 26, 46, 0.6);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .admin-table td {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .admin-table tr:hover td {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-admin {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+
+        .badge-user {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .badge-local {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+        }
+
+        .badge-google {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .badge-both {
+            background: rgba(234, 179, 8, 0.2);
+            color: #fde047;
+        }
+
+        /* Post card in admin */
+        .post-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .post-card .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .post-card .post-content {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .post-card .post-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .filter-bar select, .filter-bar input {
+            padding: 0.5rem 0.75rem;
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .filter-bar select:focus, .filter-bar input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .modal textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 0.75rem;
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        .modal textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #86efac;
+        }
+
+        .toast-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Header -->
+        <div class="admin-header">
+            <h1>Flux Admin</h1>
+            <div class="header-actions">
+                <span id="adminUser"></span>
+                <a href="/index.html" class="btn">View Feed</a>
+                <a href="/playground.html" class="btn">Playground</a>
+                <button class="btn btn-danger" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="statUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pool Posts</div>
+                <div class="stat-value" id="statPool">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Wall Posts</div>
+                <div class="stat-value" id="statWall">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Seed Posts</div>
+                <div class="stat-value" id="statSeeds">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Generated Posts</div>
+                <div class="stat-value" id="statLLM">-</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="users">Users</button>
+            <button class="tab" data-tab="posts">Pool Posts</button>
+            <button class="tab" data-tab="categories">Categories</button>
+        </div>
+
+        <!-- Users Panel -->
+        <div class="tab-panel active" id="panel-users">
+            <div class="loading" id="usersLoading">Loading users...</div>
+            <table class="admin-table" id="usersTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Display Name</th>
+                        <th>Role</th>
+                        <th>Auth</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Posts Panel -->
+        <div class="tab-panel" id="panel-posts">
+            <div class="filter-bar">
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                </select>
+                <button class="btn" id="refreshPosts">Refresh</button>
+                <span id="postCount" style="color: var(--text-muted); font-size: 0.85rem;"></span>
+            </div>
+            <div id="postsContainer"></div>
+            <div class="pagination" id="postsPagination"></div>
+        </div>
+
+        <!-- Categories Panel -->
+        <div class="tab-panel" id="panel-categories">
+            <div class="loading" id="categoriesLoading">Loading categories...</div>
+            <table class="admin-table" id="categoriesTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Post Count</th>
+                    </tr>
+                </thead>
+                <tbody id="categoriesBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Moderation Modal -->
+    <div class="modal-overlay" id="moderateModal">
+        <div class="modal">
+            <h3>Moderate Post</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;" id="moderatePostId"></p>
+            <textarea id="moderateContent"></textarea>
+            <div class="modal-actions">
+                <button class="btn" id="cancelModerate">Cancel</button>
+                <button class="btn btn-primary" id="saveModerate">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Auth check ──
+    const token = localStorage.getItem('flux_session_token');
+    const storedUser = localStorage.getItem('flux_user');
+
+    if (!token || !storedUser) {
+        window.location.href = '/login.html';
+    }
+
+    let currentUser;
+    try {
+        currentUser = JSON.parse(storedUser);
+    } catch (e) {
+        window.location.href = '/login.html';
+    }
+
+    function authFetch(url, options = {}) {
+        options.headers = {
+            ...(options.headers || {}),
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        };
+        return fetch(url, options);
+    }
+
+    // Validate session and check admin role
+    (async () => {
+        try {
+            const res = await fetch(`/v1/users/session/${token}`);
+            const data = await res.json();
+            if (data.status !== 'success') {
+                localStorage.clear();
+                window.location.href = '/login.html';
+                return;
+            }
+            currentUser = data.user;
+            localStorage.setItem('flux_user', JSON.stringify(currentUser));
+
+            if (currentUser.role !== 'ADMIN') {
+                window.location.href = '/index.html';
+                return;
+            }
+
+            document.getElementById('adminUser').textContent = `Logged in as ${currentUser.display_name || currentUser.username}`;
+            loadDashboard();
+        } catch (e) {
+            window.location.href = '/login.html';
+        }
+    })();
+
+    // ── Dashboard loader ──
+    async function loadDashboard() {
+        loadStats();
+        loadUsers();
+        loadCategories();
+    }
+
+    // ── Stats ──
+    async function loadStats() {
+        try {
+            const res = await authFetch('/v1/admin/stats');
+            const data = await res.json();
+            if (data.status === 'success') {
+                const s = data.stats;
+                document.getElementById('statUsers').textContent = s.total_users;
+                document.getElementById('statPool').textContent = s.total_pool_posts;
+                document.getElementById('statWall').textContent = s.total_wall_posts;
+                document.getElementById('statSeeds').textContent = s.seed_posts;
+                document.getElementById('statLLM').textContent = s.llm_posts;
+            }
+        } catch (e) {
+            console.error('Failed to load stats:', e);
+        }
+    }
+
+    // ── Users ──
+    async function loadUsers() {
+        try {
+            const res = await authFetch('/v1/admin/users');
+            const data = await res.json();
+            document.getElementById('usersLoading').style.display = 'none';
+            document.getElementById('usersTable').style.display = '';
+
+            const tbody = document.getElementById('usersBody');
+            tbody.innerHTML = '';
+
+            data.users.forEach(u => {
+                const row = document.createElement('tr');
+                const roleBadge = u.role === 'ADMIN' ? 'badge-admin' : 'badge-user';
+                const authBadge = u.auth_provider === 'GOOGLE' ? 'badge-google'
+                    : u.auth_provider === 'BOTH' ? 'badge-both' : 'badge-local';
+                const lastLogin = u.last_login ? new Date(u.last_login).toLocaleString() : 'Never';
+
+                row.innerHTML = `
+                    <td>${escHtml(u.username)}</td>
+                    <td>${escHtml(u.email || '-')}</td>
+                    <td>${escHtml(u.display_name || '-')}</td>
+                    <td><span class="badge ${roleBadge}">${u.role}</span></td>
+                    <td><span class="badge ${authBadge}">${u.auth_provider}</span></td>
+                    <td>${lastLogin}</td>
+                    <td>
+                        ${u.user_id !== currentUser.user_id
+                            ? `<button class="btn btn-sm" onclick="toggleRole('${u.user_id}', '${u.role}')">${u.role === 'ADMIN' ? 'Demote' : 'Promote'}</button>`
+                            : '<span style="color:var(--text-muted)">You</span>'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (e) {
+            console.error('Failed to load users:', e);
+        }
+    }
+
+    async function toggleRole(userId, currentRole) {
+        const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+        if (!confirm(`Change this user's role to ${newRole}?`)) return;
+
+        try {
+            const res = await authFetch(`/v1/admin/users/${userId}/role`, {
+                method: 'PUT',
+                body: JSON.stringify({ role: newRole })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('Role updated', 'success');
+                loadUsers();
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (e) {
+            showToast('Failed to update role', 'error');
+        }
+    }
+
+    // ── Pool Posts ──
+    let currentPostPage = 0;
+
+    async function loadPosts(page = 0) {
+        currentPostPage = page;
+        const container = document.getElementById('postsContainer');
+        container.innerHTML = '<div class="loading">Loading posts...</div>';
+
+        const category = document.getElementById('categoryFilter').value;
+        try {
+            const res = await authFetch(`/v1/admin/pool-posts?page=${page}&size=20`);
+            const data = await res.json();
+
+            let posts = data.posts || [];
+            if (category) {
+                posts = posts.filter(p => p.category === category);
+            }
+
+            document.getElementById('postCount').textContent = `Showing ${posts.length} of ${data.total} total`;
+
+            container.innerHTML = '';
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="loading">No posts found</div>';
+                return;
+            }
+
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-meta">
+                        <span><strong>${escHtml(post.category || 'N/A')}</strong> &middot; ${escHtml(post.source || 'unknown')} &middot; ID: ${escHtml(post.post_id)}</span>
+                    </div>
+                    <div class="post-content">${escHtml(post.content || '(empty)')}</div>
+                    <div class="post-actions">
+                        <button class="btn btn-sm" onclick="openModerate('${post.post_id}', this)">Moderate</button>
+                        <button class="btn btn-sm btn-danger" onclick="deletePost('${post.post_id}')">Delete</button>
+                    </div>
+                `;
+                card.dataset.content = post.content || '';
+                container.appendChild(card);
+            });
+
+            // Pagination
+            const totalPages = Math.ceil(data.total / 20);
+            const paginationEl = document.getElementById('postsPagination');
+            paginationEl.innerHTML = '';
+            for (let i = 0; i < totalPages && i < 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm' + (i === page ? ' btn-primary' : '');
+                btn.textContent = i + 1;
+                btn.onclick = () => loadPosts(i);
+                paginationEl.appendChild(btn);
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="loading">Failed to load posts</div>';
+            console.error('Failed to load posts:', e);
+        }
+    }
+
+    function openModerate(postId, btn) {
+        const card = btn.closest('.post-card');
+        document.getElementById('moderatePostId').textContent = 'Post: ' + postId;
+        document.getElementById('moderateContent').value = card.dataset.content;
+        document.getElementById('moderateModal').classList.add('active');
+        document.getElementById('saveModerate').onclick = () => saveModerate(postId);
+    }
+
+    async function saveModerate(postId) {
+        const content = document.getElementById('moderateContent').value;
+        try {
+            const res = await authFetch(`/v1/admin/pool-posts/${postId}/moderate`, {
+                method: 'PUT',
+                body: JSON.stringify({ content })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('Post moderated', 'success');
+                document.getElementById('moderateModal').classList.remove('active');
+                loadPosts(currentPostPage);
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (e) {
+            showToast('Failed to moderate post', 'error');
+        }
+    }
+
+    async function deletePost(postId) {
+        if (!confirm('Delete this post permanently?')) return;
+        try {
+            const res = await authFetch(`/v1/admin/pool-posts/${postId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('Post deleted', 'success');
+                loadPosts(currentPostPage);
+                loadStats();
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (e) {
+            showToast('Failed to delete post', 'error');
+        }
+    }
+
+    // ── Categories ──
+    async function loadCategories() {
+        try {
+            const res = await authFetch('/v1/admin/pool-posts/categories');
+            const data = await res.json();
+            document.getElementById('categoriesLoading').style.display = 'none';
+            document.getElementById('categoriesTable').style.display = '';
+
+            const tbody = document.getElementById('categoriesBody');
+            tbody.innerHTML = '';
+
+            const cats = data.categories || {};
+            const sortedCats = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+
+            // Also populate filter dropdown
+            const filter = document.getElementById('categoryFilter');
+            filter.innerHTML = '<option value="">All Categories</option>';
+
+            sortedCats.forEach(([cat, count]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${escHtml(cat)}</td><td>${count}</td>`;
+                tbody.appendChild(row);
+
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = `${cat} (${count})`;
+                filter.appendChild(opt);
+            });
+        } catch (e) {
+            console.error('Failed to load categories:', e);
+        }
+    }
+
+    // ── Tabs ──
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+
+            if (tab.dataset.tab === 'posts') {
+                loadPosts(currentPostPage);
+            }
+        });
+    });
+
+    // ── Events ──
+    document.getElementById('refreshPosts').addEventListener('click', () => loadPosts(currentPostPage));
+    document.getElementById('categoryFilter').addEventListener('change', () => loadPosts(0));
+    document.getElementById('cancelModerate').addEventListener('click', () => {
+        document.getElementById('moderateModal').classList.remove('active');
+    });
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+            await authFetch('/v1/users/logout', {
+                method: 'POST',
+                body: JSON.stringify({ session_token: token })
+            });
+        } catch (e) { /* ignore */ }
+        localStorage.clear();
+        window.location.href = '/login.html';
+    });
+
+    // ── Helpers ──
+    function escHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    </script>
+</body>
+</html>

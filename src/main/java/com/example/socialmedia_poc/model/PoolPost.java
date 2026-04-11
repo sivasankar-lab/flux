@@ -1,6 +1,9 @@
 package com.example.socialmedia_poc.model;
 
+import com.example.socialmedia_poc.config.JpaConverters;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.persistence.*;
 import java.time.Instant;
 import java.util.List;
 
@@ -8,50 +11,77 @@ import java.util.List;
  * A post in the shared pool. Enriched with engagement metrics
  * so it can be scored and recommended to users.
  */
+@Entity
+@Table(name = "pool_posts", indexes = {
+    @Index(name = "idx_pool_category", columnList = "category"),
+    @Index(name = "idx_pool_engagement", columnList = "engagement_score"),
+    @Index(name = "idx_pool_created", columnList = "created_at")
+})
 public class PoolPost {
 
+    @Id
+    @Column(name = "post_id")
     @JsonProperty("post_id")
     private String postId;
 
+    @Column(columnDefinition = "TEXT")
     private String content;
+
     private String category;
+
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.StringListConverter.class)
     private List<String> tags;
 
+    @Enumerated(EnumType.STRING)
     @JsonProperty("source")
     private PostSource source;
 
+    @Column(name = "meta_config", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.MetaConfigConverter.class)
     @JsonProperty("meta_config")
     private MetaConfig metaConfig;
 
+    @Column(name = "generation_context", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.GenerationContextConverter.class)
     @JsonProperty("generation_context")
     private SeedWithMeta.GenerationContext generationContext;
 
     // --- Engagement metrics (updated as users interact) ---
 
+    @Column(name = "engagement_score")
     @JsonProperty("engagement_score")
     private double engagementScore;
 
+    @Column(name = "view_count")
     @JsonProperty("view_count")
     private int viewCount;
 
+    @Column(name = "like_count")
     @JsonProperty("like_count")
     private int likeCount;
 
+    @Column(name = "long_read_count")
     @JsonProperty("long_read_count")
     private int longReadCount;
 
+    @Column(name = "skip_count")
     @JsonProperty("skip_count")
     private int skipCount;
 
+    @Column(name = "avg_dwell_ms")
     @JsonProperty("avg_dwell_ms")
     private long avgDwellMs;
 
+    @Column(name = "total_dwell_ms")
     @JsonProperty("total_dwell_ms")
     private long totalDwellMs;
 
+    @Column(name = "generated_for_interest")
     @JsonProperty("generated_for_interest")
-    private String generatedForInterest; // category hint for cross-user reuse
+    private String generatedForInterest;
 
+    @Column(name = "created_at")
     @JsonProperty("created_at")
     private Instant createdAt;
 
@@ -99,6 +129,11 @@ public class PoolPost {
 
     /** Convert to a WallPost for serving on a user's wall. */
     public WallPost toWallPost(int batch) {
+        return toWallPost(batch, null);
+    }
+
+    /** Convert to a WallPost for serving on a user's wall, with userId for JPA storage. */
+    public WallPost toWallPost(int batch, String userId) {
         WallPost w = new WallPost();
         w.setPostId(this.postId);
         w.setContent(this.content);
@@ -107,7 +142,19 @@ public class PoolPost {
         w.setMetaConfig(this.metaConfig);
         w.setGenerationContext(this.generationContext);
         w.setBatch(batch);
+        if (userId != null) w.setUserId(userId);
         return w;
+    }
+
+    /** Convert to a SeedWithMeta DTO (for seed API responses). */
+    public SeedWithMeta toSeedWithMeta() {
+        SeedWithMeta s = new SeedWithMeta();
+        s.setSeedId(this.postId);
+        s.setContent(this.content);
+        s.setCategory(this.category);
+        s.setMetaConfig(this.metaConfig);
+        s.setGenerationContext(this.generationContext);
+        return s;
     }
 
     // --- Getters / Setters ---

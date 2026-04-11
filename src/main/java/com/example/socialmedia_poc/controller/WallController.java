@@ -6,7 +6,6 @@ import com.example.socialmedia_poc.service.WallService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,7 @@ public class WallController {
             resp.put("total", wall.size());
             resp.put("posts", wall);
             return ResponseEntity.ok(resp);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "status", "error", "message", "Failed to load wall: " + e.getMessage()));
         }
@@ -48,7 +47,7 @@ public class WallController {
             resp.put("batch", newPosts.isEmpty() ? 0 : newPosts.get(0).getBatch());
             resp.put("posts", newPosts);
             return ResponseEntity.ok(resp);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "status", "error", "message", "Failed to generate posts: " + e.getMessage()));
         }
@@ -64,7 +63,7 @@ public class WallController {
             resp.put("count", posts.size());
             resp.put("posts", posts);
             return ResponseEntity.ok(resp);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "status", "error", "message", "Failed to load batch: " + e.getMessage()));
         }
@@ -74,7 +73,7 @@ public class WallController {
     public ResponseEntity<?> getWallStats(@PathVariable String userId) {
         try {
             return ResponseEntity.ok(wallService.getWallStats(userId));
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "status", "error", "message", "Failed to load stats: " + e.getMessage()));
         }
@@ -86,10 +85,10 @@ public class WallController {
             List<WallPost> wall = wallService.resetWall(userId);
             Map<String, Object> resp = new HashMap<>();
             resp.put("status", "success");
-            resp.put("message", "Wall reset with " + wall.size() + " initial posts");
+            resp.put("message", "Wall reset with " + wall.size() + " fresh posts");
             resp.put("posts", wall);
             return ResponseEntity.ok(resp);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "status", "error", "message", "Failed to reset wall: " + e.getMessage()));
         }
@@ -99,7 +98,7 @@ public class WallController {
     public ResponseEntity<?> getPoolStats() {
         try {
             return ResponseEntity.ok(poolService.getPoolStats());
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "status", "error", "message", "Failed to load pool stats: " + e.getMessage()));
         }

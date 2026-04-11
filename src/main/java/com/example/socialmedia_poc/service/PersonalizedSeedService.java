@@ -30,12 +30,6 @@ public class PersonalizedSeedService {
         StringBuilder sb = new StringBuilder(BASE_SYSTEM_MESSAGE);
         if (config.getLanguage() != null && !config.getLanguage().isEmpty()) {
             sb.append(" Write this post in: ").append(String.join(" or ", config.getLanguage())).append(".");
-            if (config.getLanguage().contains("Tamil")) {
-                sb.append(" Use Tamil script (தமிழ்) naturally. Tanglish (Tamil written in English letters) is also acceptable.");
-            }
-            if (config.getLanguage().contains("Tanglish")) {
-                sb.append(" Tanglish = Tamil words written in English letters, e.g. 'Vera level mass da!'");
-            }
         }
         return sb.toString();
     }
@@ -104,37 +98,79 @@ public class PersonalizedSeedService {
         return personalizedSeeds;
     }
 
+    private static final String[] ANGLE_VARIATIONS = {
+            "Focus on a surprising fact most people don't know.",
+            "Start with a counter-intuitive observation.",
+            "Tell a micro-story — one specific moment that reveals a larger truth.",
+            "Use a vivid analogy to explain something in a new way.",
+            "Present a sharp contrast or paradox.",
+            "Zoom in on one specific detail that reveals the bigger picture.",
+            "Connect two unrelated ideas in an unexpected way.",
+            "Ask a provocative question and give a surprising answer.",
+            "Describe a real experiment or scenario with an unexpected outcome.",
+            "Drop a specific number that reframes how we see this topic."
+    };
+
+    private int angleIndex = 0;
+
     private String constructPersonalizedPrompt(Meta meta, InteractionService.UserPreference preference) {
-        StringBuilder prompt = new StringBuilder();
-        
-        prompt.append("Generate a personalized post for '").append(meta.getCategory()).append("'. ");
-        prompt.append("Respond with EXACTLY 50 words or less. Only the post content. ");
-        
         MetaConfig config = meta.getMetaConfig();
-        
-        if ("deep".equals(preference.getPreferredDepth())) {
-            prompt.append("Make the content more detailed and thought-provoking. ");
-        } else if ("shallow".equals(preference.getPreferredDepth())) {
-            prompt.append("Keep the content lightweight and easy to digest. ");
+        StringBuilder prompt = new StringBuilder();
+
+        // Word count from meta-config
+        int minWords = 40, maxWords = 120;
+        if (config.getWordCountRange() != null && config.getWordCountRange().size() == 2) {
+            minWords = config.getWordCountRange().get(0);
+            maxWords = config.getWordCountRange().get(1);
         }
-        
-        prompt.append("The post should have ");
-        
+
+        // Adjust for preference
+        if ("deep".equals(preference.getPreferredDepth())) {
+            maxWords = Math.min(maxWords + 50, 250);
+        } else if ("shallow".equals(preference.getPreferredDepth())) {
+            maxWords = Math.min(maxWords, 80);
+        }
+
+        prompt.append("Write ONE short social media post about '").append(meta.getCategory()).append("'. ");
+        prompt.append("Length: ").append(minWords).append("-").append(maxWords).append(" words. ");
+        prompt.append("Output ONLY the post text — no titles, labels, hashtags, or quotes.\n\n");
+
+        // Use tone_guide (rich instruction from meta-config)
+        if (config.getToneGuide() != null && !config.getToneGuide().isEmpty()) {
+            prompt.append("TONE: ").append(config.getToneGuide()).append("\n\n");
+        }
+
+        // Intensity (adjusted by engagement)
         if ("high".equals(preference.getEngagementLevel())) {
             int maxIntensity = config.getIntensityRange().get(1);
-            prompt.append("an intensity around ").append(maxIntensity).append(", ");
+            prompt.append("Intensity: ").append(maxIntensity).append("/10 (high engagement user). ");
         } else {
             int avgIntensity = (config.getIntensityRange().get(0) + config.getIntensityRange().get(1)) / 2;
-            prompt.append("an intensity around ").append(avgIntensity).append(", ");
+            prompt.append("Intensity: ").append(avgIntensity).append("/10. ");
         }
-        
-        prompt.append("a ").append(preference.getPreferredPacing()).append(" pacing, ");
-        prompt.append("and trigger feelings of ").append(String.join(", ", config.getTriggers())).append(". ");
-        
+
+        prompt.append("Pacing: ").append(preference.getPreferredPacing()).append(". ");
+
+        // Triggers
+        if (config.getTriggers() != null && !config.getTriggers().isEmpty()) {
+            prompt.append("Evoke: ").append(String.join(", ", config.getTriggers())).append(". ");
+        }
+
+        // Vocabulary
         if (config.getVocabularyWeight() != null && !config.getVocabularyWeight().isEmpty()) {
-            prompt.append("Use words like ").append(String.join(", ", config.getVocabularyWeight().keySet())).append(".");
+            List<String> topWords = config.getVocabularyWeight().entrySet().stream()
+                    .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                    .limit(4)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+            prompt.append("Weave in: ").append(String.join(", ", topWords)).append(". ");
         }
-        
+
+        // Quality + variety
+        prompt.append("\nBe SPECIFIC — use a real fact, name, number, or vivid detail. No generic filler. ");
+        prompt.append("ANGLE: ").append(ANGLE_VARIATIONS[angleIndex % ANGLE_VARIATIONS.length]);
+        angleIndex++;
+
         return prompt.toString();
     }
     

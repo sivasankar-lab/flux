@@ -1,16 +1,34 @@
 [
   {
+    "category": "Hooks",
+    "meta_config": {
+      "intensity_range": [8, 10],
+      "pacing": "Rapid",
+      "word_count_range": [15, 50],
+      "language": ["English"],
+      "triggers": ["Curiosity-Gap", "Pattern-Interrupt", "Emotional-Spike", "Unfinished-Loop"],
+      "dwell_logic": {
+        "on_slow_read": "reveal_a_counterintuitive_twist_that_reframes_reality",
+        "on_fast_swipe": "hit_with_an_irresistible_one_line_cliffhanger"
+      },
+      "vocabulary_weight": { "actually": 0.9, "realize": 0.85, "imagine": 0.9, "notice": 0.8, "between": 0.7, "before": 0.85, "after": 0.8, "difference": 0.75, "thought": 0.8, "turns out": 0.9 },
+      "tone_guide": "Conversational, specific, and surprising. Like telling a friend something that genuinely changed how you see the world. Never generic. Always grounded in a real observation or fact."
+    }
+  },
+  {
     "category": "History & Society",
     "meta_config": {
       "intensity_range": [6, 9],
       "pacing": "Balanced",
-      "language": ["Tamil", "English", "Tanglish"],
-      "triggers": ["Curiosity", "Awe", "Pride", "Debate"],
+      "word_count_range": [80, 150],
+      "language": ["English"],
+      "triggers": ["Curiosity", "Awe", "Reframing", "Connection"],
       "dwell_logic": {
         "on_slow_read": "reveal_lesser_known_connections_between_historical_events",
         "on_fast_swipe": "drop_a_single_shocking_historical_fact"
       },
-      "vocabulary_weight": { "ancient": 0.9, "empire": 0.8, "revolution": 0.8, "forgotten": 0.7, "civilization": 0.7, "legacy": 0.6 }
+      "vocabulary_weight": { "ancient": 0.9, "empire": 0.8, "revolution": 0.8, "forgotten": 0.7, "civilization": 0.7, "legacy": 0.6 },
+      "tone_guide": "Like a brilliant history professor who makes you see the present differently through the past. Use specific names, dates, places. Connect old events to modern parallels."
     }
   },
   {
@@ -18,13 +36,15 @@
     "meta_config": {
       "intensity_range": [5, 8],
       "pacing": "Balanced",
-      "language": ["Tamil", "English", "Tanglish"],
-      "triggers": ["Aha-Moment", "Wonder", "Problem-Solve", "Novelty"],
+      "word_count_range": [80, 150],
+      "language": ["English"],
+      "triggers": ["Aha-Moment", "Wonder", "Clarity", "Novelty"],
       "dwell_logic": {
         "on_slow_read": "explain_the_underlying_mechanism_step_by_step",
         "on_fast_swipe": "present_a_mind_blowing_one_liner_fact"
       },
-      "vocabulary_weight": { "quantum": 0.8, "experiment": 0.9, "discovery": 0.9, "mechanism": 0.7, "breakthrough": 0.8, "proof": 0.6 }
+      "vocabulary_weight": { "quantum": 0.8, "experiment": 0.9, "discovery": 0.9, "mechanism": 0.7, "breakthrough": 0.8, "proof": 0.6 },
+      "tone_guide": "Like Kurzgesagt or Veritasium — make complex ideas feel simple and beautiful. Use vivid analogies. Ground abstract science in everyday experience."
     }
   },
   {
@@ -32,13 +52,15 @@
     "meta_config": {
       "intensity_range": [6, 9],
       "pacing": "Slow",
-      "language": ["Tamil", "English", "Tanglish"],
-      "triggers": ["Self-Reflection", "Relatability", "Vulnerability", "Insight"],
+      "word_count_range": [100, 200],
+      "language": ["English"],
+      "triggers": ["Self-Recognition", "Relatability", "Reframing", "Insight"],
       "dwell_logic": {
         "on_slow_read": "dive_into_cognitive_bias_or_emotional_pattern_with_real_example",
         "on_fast_swipe": "pose_a_provocative_question_about_human_nature"
       },
-      "vocabulary_weight": { "subconscious": 0.9, "bias": 0.8, "pattern": 0.8, "trigger": 0.7, "mindset": 0.9, "illusion": 0.7 }
+      "vocabulary_weight": { "subconscious": 0.9, "bias": 0.8, "pattern": 0.8, "trigger": 0.7, "mindset": 0.9, "illusion": 0.7 },
+      "tone_guide": "Like a therapist who makes you see yourself clearly for the first time. Describe a specific behavior the reader does but never noticed. Name the pattern. Explain why."
     }
   },
   {
@@ -46,13 +68,15 @@
     "meta_config": {
       "intensity_range": [7, 9],
       "pacing": "Fast",
-      "language": ["Tamil", "English", "Tanglish"],
-      "triggers": ["Awe", "FOMO", "Obsolescence", "Ambition"],
+      "word_count_range": [50, 120],
+      "language": ["English"],
+      "triggers": ["Awe", "Implication", "Possibility", "Urgency"],
       "dwell_logic": {
         "on_slow_read": "simulate_a_near_future_scenario_with_specific_tech",
         "on_fast_swipe": "drop_a_shocking_stat_about_AI_or_automation"
       },
-      "vocabulary_weight": { "AI": 0.9, "disrupt": 0.9, "autonomous": 0.8, "neural": 0.7, "obsolete": 0.8, "singularity": 0.6 }
+      "vocabulary_weight": { "AI": 0.9, "disrupt": 0.9, "autonomous": 0.8, "neural": 0.7, "obsolete": 0.8, "singularity": 0.6 },
+      "tone_guide": "Like a sharp tech analyst, not a hype influencer. Use specific numbers, real company names, actual timelines. Show implications, don't just declare things scary."
     }
   },
   {
@@ -60,13 +84,15 @@
     "meta_config": {
       "intensity_range": [5, 8],
       "pacing": "Slow",
-      "language": ["Tamil", "English", "Tanglish"],
-      "triggers": ["Existential", "Wonder", "Exploration", "Calm"],
+      "word_count_range": [100, 200],
+      "language": ["English"],
+      "triggers": ["Existential", "Wonder", "Perspective-Shift", "Stillness"],
       "dwell_logic": {
         "on_slow_read": "unfold_a_thought_experiment_or_paradox",
         "on_fast_swipe": "present_a_single_profound_quote_or_question"
       },
-      "vocabulary_weight": { "meaning": 0.9, "existence": 0.8, "purpose": 0.9, "paradox": 0.7, "truth": 0.8, "consciousness": 0.7 }
+      "vocabulary_weight": { "meaning": 0.9, "existence": 0.8, "purpose": 0.9, "paradox": 0.7, "truth": 0.8, "consciousness": 0.7 },
+      "tone_guide": "Like a late-night conversation with someone deeply thoughtful. Pose genuine dilemmas, not rhetorical tricks. Make the reader sit with a question they can't easily answer."
     }
   },
   {
@@ -74,13 +100,15 @@
     "meta_config": {
       "intensity_range": [3, 6],
       "pacing": "Balanced",
-      "language": ["Tamil", "English", "Tanglish"],
-      "triggers": ["Optimization", "Longevity", "Relatability", "Safety"],
+      "word_count_range": [60, 120],
+      "language": ["English"],
+      "triggers": ["Optimization", "Clarity", "Relatability", "Agency"],
       "dwell_logic": {
         "on_slow_read": "explain_the_science_behind_a_health_habit",
         "on_fast_swipe": "offer_one_actionable_tip_you_can_start_today"
       },
-      "vocabulary_weight": { "routine": 0.9, "optimal": 0.8, "habit": 0.9, "balance": 0.8, "energy": 0.7, "mindful": 0.7 }
+      "vocabulary_weight": { "routine": 0.9, "optimal": 0.8, "habit": 0.9, "balance": 0.8, "energy": 0.7, "mindful": 0.7 },
+      "tone_guide": "Like Andrew Huberman or Peter Attia — evidence-based, specific protocols, no vague wellness fluff. Cite a mechanism. Give one concrete action."
     }
   }
 ]

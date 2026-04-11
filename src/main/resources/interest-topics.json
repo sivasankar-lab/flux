@@ -1,0 +1,94 @@
+{
+  "categories": [
+    {
+      "name": "History & Society",
+      "topics": [
+        "Ancient Civilizations",
+        "Medieval History",
+        "Ancient India",
+        "World Wars",
+        "Colonial Era",
+        "Renaissance",
+        "Cold War",
+        "Social Movements",
+        "Ancient Rome",
+        "Ancient Egypt"
+      ]
+    },
+    {
+      "name": "Science & How Things Work",
+      "topics": [
+        "Space & Astronomy",
+        "Quantum Physics",
+        "Biology & Evolution",
+        "Chemistry",
+        "Earth Science",
+        "Medical Science",
+        "Engineering Marvels",
+        "Mathematics",
+        "Genetics",
+        "Climate Science"
+      ]
+    },
+    {
+      "name": "Psychology & Human Behavior",
+      "topics": [
+        "Cognitive Biases",
+        "Emotional Intelligence",
+        "Social Psychology",
+        "Behavioral Economics",
+        "Dreams & Sleep",
+        "Memory & Learning",
+        "Personality Types",
+        "Persuasion & Influence",
+        "Motivation",
+        "Relationships & Attachment"
+      ]
+    },
+    {
+      "name": "Technology & Future",
+      "topics": [
+        "Artificial Intelligence",
+        "Blockchain & Crypto",
+        "Robotics",
+        "Space Technology",
+        "Biotechnology",
+        "Cybersecurity",
+        "Virtual Reality",
+        "Internet of Things",
+        "Autonomous Vehicles",
+        "Renewable Energy Tech"
+      ]
+    },
+    {
+      "name": "Philosophy & Life Questions",
+      "topics": [
+        "Existentialism",
+        "Ethics & Morality",
+        "Stoicism",
+        "Eastern Philosophy",
+        "Free Will vs Determinism",
+        "Consciousness",
+        "Philosophy of Mind",
+        "Political Philosophy",
+        "Logic & Reasoning",
+        "Meaning of Life"
+      ]
+    },
+    {
+      "name": "Health & Lifestyle Tips",
+      "topics": [
+        "Nutrition & Diet",
+        "Fitness & Exercise",
+        "Mental Health",
+        "Sleep Optimization",
+        "Mindfulness & Meditation",
+        "Habit Building",
+        "Productivity Hacks",
+        "Stress Management",
+        "Longevity",
+        "Biohacking"
+      ]
+    }
+  ]
+}

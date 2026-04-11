@@ -1,27 +1,68 @@
 package com.example.socialmedia_poc.model;
 
+import com.example.socialmedia_poc.config.JpaConverters;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.Instant;
 
+import javax.persistence.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "users")
 public class User {
+    @Id
+    @Column(name = "user_id")
     @JsonProperty("user_id")
     private String userId;
-    
+
+    @Column(unique = true, nullable = false)
     private String username;
-    
+
     private String email;
-    
+
+    @Column(name = "display_name")
     @JsonProperty("display_name")
     private String displayName;
-    
+
+    @Column(name = "created_at")
     @JsonProperty("created_at")
     private Instant createdAt;
-    
+
+    @Column(name = "last_login")
     @JsonProperty("last_login")
     private Instant lastLogin;
-    
+
+    @Column(name = "session_token", unique = true)
     @JsonProperty("session_token")
     private String sessionToken;
+
+    @Column(name = "password_hash")
+    @JsonIgnore
+    private String passwordHash;
+
+    @Column(name = "google_id", unique = true)
+    @JsonProperty("google_id")
+    private String googleId;
+
+    @Column(name = "auth_provider")
+    @JsonProperty("auth_provider")
+    private String authProvider = "LOCAL";
+
+    @Column(name = "profile_picture_url")
+    @JsonProperty("profile_picture_url")
+    private String profilePictureUrl;
+
+    @Column(name = "role")
+    private String role = "USER";
+
+    @Column(name = "interests", columnDefinition = "TEXT")
+    @Convert(converter = JpaConverters.StringListConverter.class)
+    private List<String> interests = new ArrayList<>();
+
+    @Column(name = "onboarded")
+    private boolean onboarded = false;
 
     public User() {
         this.createdAt = Instant.now();
@@ -97,5 +138,61 @@ public class User {
 
     public void setSessionToken(String sessionToken) {
         this.sessionToken = sessionToken;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public List<String> getInterests() {
+        return interests;
+    }
+
+    public void setInterests(List<String> interests) {
+        this.interests = interests;
+    }
+
+    public boolean isOnboarded() {
+        return onboarded;
+    }
+
+    public void setOnboarded(boolean onboarded) {
+        this.onboarded = onboarded;
     }
 }

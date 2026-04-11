@@ -1,25 +1,45 @@
 package com.example.socialmedia_poc.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.persistence.*;
 import java.time.Instant;
 
+@Entity
+@Table(name = "interactions", indexes = {
+    @Index(name = "idx_interactions_user_ts", columnList = "user_id, timestamp"),
+    @Index(name = "idx_interactions_user_cat", columnList = "user_id, category"),
+    @Index(name = "idx_interactions_type", columnList = "interaction_type")
+})
 public class Interaction {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
+    private Long id;
+
+    @Column(name = "user_id", nullable = false)
     @JsonProperty("user_id")
     private String userId;
-    
+
+    @Column(name = "seed_id")
     @JsonProperty("seed_id")
     private String seedId;
-    
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interaction_type", nullable = false)
     @JsonProperty("interaction_type")
     private InteractionType interactionType;
-    
+
+    @Column(name = "dwell_time_ms")
     @JsonProperty("dwell_time_ms")
     private Long dwellTimeMs;
-    
+
     private String category;
-    
+
     private Instant timestamp;
-    
+
+    @Embedded
     @JsonProperty("meta_data")
     private InteractionMetaData metaData;
 
@@ -30,6 +50,9 @@ public class Interaction {
     public Interaction() {
         this.timestamp = Instant.now();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getUserId() {
         return userId;
@@ -87,10 +110,15 @@ public class Interaction {
         this.metaData = metaData;
     }
 
+    @Embeddable
     public static class InteractionMetaData {
+        @Column(name = "meta_intensity")
         private Integer intensity;
+
+        @Column(name = "meta_pacing")
         private String pacing;
-        
+
+        @Column(name = "meta_scroll_depth")
         @JsonProperty("scroll_depth")
         private Double scrollDepth;
 
