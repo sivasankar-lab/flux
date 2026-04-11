@@ -41,11 +41,14 @@ public class AsyncContentGeneratorService {
 
     private final PersonalizedSeedService personalizedSeedService;
     private final PostPoolService poolService;
+    private final com.example.socialmedia_poc.config.ApiKeyStore apiKeyStore;
 
     public AsyncContentGeneratorService(PersonalizedSeedService personalizedSeedService,
-                                        PostPoolService poolService) {
+                                        PostPoolService poolService,
+                                        com.example.socialmedia_poc.config.ApiKeyStore apiKeyStore) {
         this.personalizedSeedService = personalizedSeedService;
         this.poolService = poolService;
+        this.apiKeyStore = apiKeyStore;
     }
 
     // ──────────────────────────────────────────────
@@ -56,6 +59,10 @@ public class AsyncContentGeneratorService {
      * Enqueue a single generation task. Returns immediately.
      */
     public void enqueue(String userId, String category, int count, String reason) {
+        if (!apiKeyStore.isPoolGenerationEnabled()) {
+            log.info("[AsyncGen] Pool generation disabled — skipping enqueue for '{}'", category);
+            return;
+        }
         taskQueue.add(new GenerationTask(userId, category, count, reason));
         log.info("[AsyncGen] Queued: {} posts for '{}' (reason: {}, user: {})",
                 count, category, reason, userId);
@@ -66,6 +73,10 @@ public class AsyncContentGeneratorService {
      * Enqueue multiple categories at once. Returns immediately.
      */
     public void enqueueBulk(String userId, Map<String, Integer> categoryCountMap, String reason) {
+        if (!apiKeyStore.isPoolGenerationEnabled()) {
+            log.info("[AsyncGen] Pool generation disabled — skipping bulk enqueue");
+            return;
+        }
         for (Map.Entry<String, Integer> entry : categoryCountMap.entrySet()) {
             taskQueue.add(new GenerationTask(userId, entry.getKey(), entry.getValue(), reason));
         }
@@ -139,6 +150,10 @@ public class AsyncContentGeneratorService {
      */
     @Scheduled(fixedDelay = 120_000, initialDelay = 60_000)
     public void monitorPoolHealth() {
+        if (!apiKeyStore.isPoolGenerationEnabled()) {
+            log.debug("[AsyncGen] Pool generation disabled — skipping health check");
+            return;
+        }
         try {
             Map<String, Object> stats = poolService.getPoolStats();
             @SuppressWarnings("unchecked")

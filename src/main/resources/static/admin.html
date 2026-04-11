@@ -49,7 +49,7 @@
             padding: 0.5rem 1rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            background: rgba(26, 26, 46, 0.5);
+            background: var(--card-bg);
             color: var(--text-primary);
             cursor: pointer;
             font-size: 0.85rem;
@@ -169,7 +169,7 @@
         }
 
         .admin-table th {
-            background: rgba(26, 26, 46, 0.6);
+            background: var(--sidebar-bg);
             color: var(--text-muted);
             font-size: 0.8rem;
             text-transform: uppercase;
@@ -268,7 +268,7 @@
 
         .filter-bar select, .filter-bar input {
             padding: 0.5rem 0.75rem;
-            background: rgba(26, 26, 46, 0.5);
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             color: var(--text-primary);
@@ -323,13 +323,82 @@
             width: 100%;
             min-height: 150px;
             padding: 0.75rem;
-            background: rgba(26, 26, 46, 0.5);
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 0.9rem;
             resize: vertical;
             margin-bottom: 1rem;
+        }
+
+        /* Pool generation admin toggle */
+        .pool-toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .pool-toggle-row .label {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .pool-toggle-row .desc {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        .toggle-sw {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: var(--border-color);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-sw.on {
+            background: var(--accent-primary);
+        }
+
+        .toggle-sw::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-sw.on::after {
+            transform: translateX(22px);
+        }
+
+        .admin-theme-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .admin-theme-toggle:hover {
+            border-color: var(--accent-primary);
         }
 
         .modal textarea:focus {
@@ -379,6 +448,7 @@
             <h1>Flux Admin</h1>
             <div class="header-actions">
                 <span id="adminUser"></span>
+                <button class="admin-theme-toggle" id="adminThemeToggle">&#9790;</button>
                 <a href="/index.html" class="btn">View Feed</a>
                 <a href="/playground.html" class="btn">Playground</a>
                 <button class="btn btn-danger" id="logoutBtn">Logout</button>
@@ -466,7 +536,18 @@
         <!-- Settings Panel -->
         <div class="tab-panel" id="panel-settings">
             <div style="max-width:600px;">
-                <h2 style="color:var(--text-primary);margin-bottom:1.5rem;font-family:'Space Grotesk',sans-serif;">API Key Settings</h2>
+                <h2 style="color:var(--text-primary);margin-bottom:1.5rem;font-family:'Space Grotesk',sans-serif;">Settings</h2>
+
+                <!-- Pool Generation Toggle -->
+                <div class="pool-toggle-row">
+                    <div>
+                        <div class="label">Pool Post Generation</div>
+                        <div class="desc">When OFF, no new LLM content will be generated server-side</div>
+                    </div>
+                    <div class="toggle-sw on" id="poolGenAdminToggle"></div>
+                </div>
+
+                <h3 style="color:var(--text-primary);margin-bottom:1rem;font-family:'Space Grotesk',sans-serif;font-size:1.1rem;">API Keys</h3>
                 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;">
                     Set your LLM API keys here. Keys are stored in-memory and take effect immediately. They will reset on server restart unless also set via environment variables.
                 </p>
@@ -477,7 +558,7 @@
                         HuggingFace API Key
                     </label>
                     <div style="display:flex;gap:0.5rem;align-items:center;">
-                        <input type="password" id="settingsHfKey" placeholder="hf_..." style="flex:1;padding:0.6rem 0.75rem;background:rgba(26,26,46,0.5);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
+                        <input type="password" id="settingsHfKey" placeholder="hf_..." style="flex:1;padding:0.6rem 0.75rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
                         <button class="btn btn-sm" onclick="toggleKeyVisibility('settingsHfKey', this)">Show</button>
                     </div>
                     <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--text-muted);" id="hfKeyStatus">Loading...</div>
@@ -489,14 +570,14 @@
                         Grok (xAI) API Key
                     </label>
                     <div style="display:flex;gap:0.5rem;align-items:center;">
-                        <input type="password" id="settingsGrokKey" placeholder="xai-..." style="flex:1;padding:0.6rem 0.75rem;background:rgba(26,26,46,0.5);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
+                        <input type="password" id="settingsGrokKey" placeholder="xai-..." style="flex:1;padding:0.6rem 0.75rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
                         <button class="btn btn-sm" onclick="toggleKeyVisibility('settingsGrokKey', this)">Show</button>
                     </div>
                     <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--text-muted);" id="grokKeyStatus">Loading...</div>
                 </div>
 
                 <!-- Provider info -->
-                <div style="margin-bottom:1.5rem;padding:1rem;background:rgba(26,26,46,0.3);border:1px solid var(--border-color);border-radius:8px;">
+                <div style="margin-bottom:1.5rem;padding:1rem;background:var(--sidebar-bg);border:1px solid var(--border-color);border-radius:8px;">
                     <div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem;">Active LLM Provider</div>
                     <div style="color:var(--text-primary);font-size:1rem;font-weight:600;" id="settingsProvider">-</div>
                 </div>
@@ -936,6 +1017,52 @@
             btn.textContent = 'Show';
         }
     }
+
+    // ── Theme Toggle ──
+    const savedTheme = localStorage.getItem('flux_theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    document.getElementById('adminThemeToggle').addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('flux_theme', newTheme);
+    });
+
+    // ── Pool Generation Admin Toggle ──
+    const poolToggleEl = document.getElementById('poolGenAdminToggle');
+
+    async function loadPoolGenState() {
+        try {
+            const res = await authFetch('/v1/admin/settings');
+            const data = await res.json();
+            if (data.status === 'success') {
+                const enabled = data.settings.pool_generation_enabled !== false;
+                poolToggleEl.classList.toggle('on', enabled);
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    poolToggleEl.addEventListener('click', async () => {
+        const willEnable = !poolToggleEl.classList.contains('on');
+        try {
+            const res = await authFetch('/v1/admin/settings/pool-generation', {
+                method: 'PUT',
+                body: JSON.stringify({ enabled: willEnable })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                poolToggleEl.classList.toggle('on', willEnable);
+                showToast('Pool generation ' + (willEnable ? 'enabled' : 'disabled'), 'success');
+            } else {
+                showToast(data.message || 'Failed to update', 'error');
+            }
+        } catch (e) {
+            showToast('Failed to update', 'error');
+        }
+    });
     </script>
 </body>
 </html>

@@ -48,6 +48,19 @@ public class ApiKeyStore {
         log.info("[ApiKeyStore] Grok API key updated (length={})", this.grokApiKey.length());
     }
 
+    // ── Pool Generation Toggle ──
+
+    private volatile boolean poolGenerationEnabled = true;
+
+    public boolean isPoolGenerationEnabled() {
+        return poolGenerationEnabled;
+    }
+
+    public void setPoolGenerationEnabled(boolean enabled) {
+        this.poolGenerationEnabled = enabled;
+        log.info("[ApiKeyStore] Pool generation {}", enabled ? "ENABLED" : "DISABLED");
+    }
+
     // ── Helpers ──
 
     /** Returns a masked version of a key for display (e.g. "hf_hQ...IIqt"). */

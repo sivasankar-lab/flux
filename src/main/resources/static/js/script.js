@@ -1,43 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Check authentication first
+    // ══════════════════════════════════
+    // Auth check
+    // ══════════════════════════════════
     const sessionToken = localStorage.getItem('flux_session_token');
     const storedUserId = localStorage.getItem('flux_user_id');
     
     if (!sessionToken || !storedUserId) {
-        // No session, redirect to login
         window.location.href = '/login.html';
         return;
     }
     
-    // Validate session
     fetch(`/v1/users/session/${sessionToken}`)
         .then(response => response.json())
         .then(data => {
             if (data.status !== 'success') {
-                // Invalid session, redirect to login
                 localStorage.removeItem('flux_session_token');
                 localStorage.removeItem('flux_user_id');
                 localStorage.removeItem('flux_user');
                 window.location.href = '/login.html';
                 return;
             }
-            
-            // Update user info
             localStorage.setItem('flux_user', JSON.stringify(data.user));
-
-            // Redirect to onboarding if not completed
             if (!data.user.onboarded) {
                 window.location.href = '/onboard.html';
                 return;
             }
-
             updateUserProfile(data.user);
         })
-        .catch(error => {
-            console.error('Session validation error:', error);
-            window.location.href = '/login.html';
-        });
+        .catch(() => { window.location.href = '/login.html'; });
     
+    // ══════════════════════════════════
+    // DOM refs
+    // ══════════════════════════════════
     const wall = document.querySelector('#feedWall');
     const loadingIndicator = document.querySelector('#loadingIndicator');
     const refreshBtn = document.querySelector('#refreshBtn');
@@ -45,17 +39,119 @@ document.addEventListener('DOMContentLoaded', () => {
     const scrollTopBtn = document.querySelector('#scrollTopBtn');
     const totalViewedEl = document.querySelector('#totalViewed');
     const avgDwellEl = document.querySelector('#avgDwell');
-    
-    // User ID from authenticated session
+    const themeToggle = document.querySelector('#themeToggle');
+    const soundToggle = document.querySelector('#soundToggle');
+    const poolGenToggle = document.querySelector('#poolGenerationToggle');
+
     const userId = storedUserId;
 
-    // Authenticated fetch helper — injects Bearer token on every request
+    // ══════════════════════════════════
+    // Theme System
+    // ══════════════════════════════════
+    const savedTheme = localStorage.getItem('flux_theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('flux_theme', newTheme);
+        });
+    }
+
+    // ══════════════════════════════════
+    // Sound System
+    // ══════════════════════════════════
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let soundEnabled = localStorage.getItem('flux_sound') !== 'off';
+
+    function updateSoundButton() {
+        if (soundToggle) {
+            soundToggle.innerHTML = soundEnabled ? '&#128266;' : '&#128264;';
+            soundToggle.classList.toggle('muted', !soundEnabled);
+        }
+    }
+    updateSoundButton();
+
+    if (soundToggle) {
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('flux_sound', soundEnabled ? 'on' : 'off');
+            updateSoundButton();
+            if (soundEnabled) playTapSound();
+        });
+    }
+
+    function playTapSound() {
+        if (!soundEnabled) return;
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
+        } catch (e) { /* ignore audio errors */ }
+    }
+
+    function playLikeSound() {
+        if (!soundEnabled) return;
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.2);
+        } catch (e) { /* ignore */ }
+    }
+
+    // ══════════════════════════════════
+    // Pool Generation Toggle
+    // ══════════════════════════════════
+    let poolGenerationEnabled = localStorage.getItem('flux_pool_gen') !== 'off';
+
+    function updatePoolToggle() {
+        if (poolGenToggle) {
+            poolGenToggle.classList.toggle('active', poolGenerationEnabled);
+        }
+    }
+    updatePoolToggle();
+
+    if (poolGenToggle) {
+        poolGenToggle.addEventListener('click', () => {
+            poolGenerationEnabled = !poolGenerationEnabled;
+            localStorage.setItem('flux_pool_gen', poolGenerationEnabled ? 'on' : 'off');
+            updatePoolToggle();
+            playTapSound();
+        });
+    }
+
+    // ══════════════════════════════════
+    // Auth helper
+    // ══════════════════════════════════
     function authFetch(url, options = {}) {
         if (!options.headers) options.headers = {};
         options.headers['Authorization'] = 'Bearer ' + sessionToken;
         return fetch(url, options);
     }
     
+    // ══════════════════════════════════
+    // State
+    // ══════════════════════════════════
     let allSeeds = [];
     let cardsRendered = 0;
     const cardsPerPage = 9;
@@ -63,58 +159,43 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalViewed = 0;
     let totalDwellTime = 0;
     let cardDwellTimes = new Map();
-    let personalizedSeedsLoaded = false; // Track if generated batch is loaded
-    let isLoadingPersonalized = false; // Prevent duplicate generation requests
+    let personalizedSeedsLoaded = false;
+    let isLoadingPersonalized = false;
 
-    // Update user profile in UI
+    // ══════════════════════════════════
+    // User profile
+    // ══════════════════════════════════
     function updateUserProfile(user) {
         const profileBtn = document.querySelector('.profile-btn');
         if (profileBtn && user.display_name) {
             const displayNameEl = profileBtn.querySelector('span');
-            if (displayNameEl) {
-                displayNameEl.textContent = user.display_name;
-            }
+            if (displayNameEl) displayNameEl.textContent = user.display_name;
+            const avatar = profileBtn.querySelector('.avatar span');
+            if (avatar) avatar.textContent = user.display_name.charAt(0).toUpperCase();
         }
     }
     
-    // Logout function
-    function logout() {
-        const sessionToken = localStorage.getItem('flux_session_token');
-        
-        if (sessionToken) {
-            authFetch('/v1/users/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ session_token: sessionToken })
-            }).catch(error => console.error('Logout error:', error));
-        }
-        
-        localStorage.removeItem('flux_session_token');
-        localStorage.removeItem('flux_user_id');
-        localStorage.removeItem('flux_user');
-        window.location.href = '/login.html';
-    }
-    
-    // Add logout button handler
+    // Logout
     const profileBtn = document.querySelector('.profile-btn');
     if (profileBtn) {
         profileBtn.addEventListener('click', () => {
             if (confirm('Do you want to logout?')) {
-                logout();
+                authFetch('/v1/users/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_token: sessionToken })
+                }).catch(() => {});
+                localStorage.removeItem('flux_session_token');
+                localStorage.removeItem('flux_user_id');
+                localStorage.removeItem('flux_user');
+                window.location.href = '/login.html';
             }
         });
     }
 
-    // Generate or retrieve user ID (legacy - now using session-based ID)
-    function generateUserId() {
-        const id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('flux_user_id', id);
-        return id;
-    }
-
-    // Record interaction with backend and handle smart triggers
+    // ══════════════════════════════════
+    // Interactions
+    // ══════════════════════════════════
     async function recordInteraction(seedId, category, interactionType, dwellTimeMs = null, metaData = null) {
         const interaction = {
             user_id: userId,
@@ -128,16 +209,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await authFetch('/v1/interactions/record', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(interaction)
             });
 
             if (response.ok) {
                 const data = await response.json();
-                // Trigger fired — generation is queued in the background
-                if (data.trigger && data.trigger !== 'NONE') {
+                if (data.trigger && data.trigger !== 'NONE' && poolGenerationEnabled) {
                     showTriggerToast(data.trigger, data.trigger_message || 'New content being prepared...');
                 }
             }
@@ -146,62 +224,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Toast notification for triggers
     function showTriggerToast(trigger, message) {
-        // Remove existing toast
         const existing = document.querySelector('.trigger-toast');
         if (existing) existing.remove();
 
         const toast = document.createElement('div');
         toast.className = 'trigger-toast';
-        toast.innerHTML = `
-            <div class="toast-icon">${trigger === 'DEEP_INTEREST' ? '🎯' : trigger === 'ENGAGEMENT_DROP' ? '🔄' : '🌊'}</div>
-            <div class="toast-message">${message}</div>
-        `;
+        const icon = trigger === 'DEEP_INTEREST' ? '&#127919;' : trigger === 'ENGAGEMENT_DROP' ? '&#128260;' : '&#127754;';
+        toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-message">${message}</div>`;
         document.body.appendChild(toast);
 
-        // Animate in
         requestAnimationFrame(() => toast.classList.add('visible'));
-
-        // Auto-dismiss after 4s
         setTimeout(() => {
             toast.classList.remove('visible');
             setTimeout(() => toast.remove(), 400);
         }, 4000);
     }
 
-    // Update statistics
+    // Stats
     const updateStats = () => {
         totalViewedEl.textContent = totalViewed;
         const avgDwell = totalViewed > 0 ? (totalDwellTime / totalViewed).toFixed(1) : 0;
         avgDwellEl.textContent = `${avgDwell}s`;
     };
 
-    // Initialize Intersection Observer for animations
+    // ══════════════════════════════════
+    // Observers (animation + dwell tracking)
+    // ══════════════════════════════════
     const initializeObserver = () => {
         const cards = document.querySelectorAll('.card:not(.in-view)');
         if (cards.length === 0) return;
 
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.1
-        };
-
-        const observerCallback = (entries, observer) => {
+        const observer = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('in-view');
-                    observer.unobserve(entry.target);
+                    obs.unobserve(entry.target);
                 }
             });
-        };
-
-        const observer = new IntersectionObserver(observerCallback, observerOptions);
+        }, { root: null, rootMargin: '0px', threshold: 0.1 });
         cards.forEach(card => observer.observe(card));
     };
 
-    // Track card dwell time
     const trackDwellTime = (card, seedData) => {
         const startTime = Date.now();
         cardDwellTimes.set(card, { startTime, seedData });
@@ -218,15 +282,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalViewed++;
                     updateStats();
                     
-                    // Determine interaction type based on dwell time
                     let interactionType = 'VIEW';
-                    if (dwellSeconds > 8) {
-                        interactionType = 'LONG_READ';
-                    } else if (dwellSeconds < 2) {
-                        interactionType = 'SKIP';
-                    }
+                    if (dwellSeconds > 8) interactionType = 'LONG_READ';
+                    else if (dwellSeconds < 2) interactionType = 'SKIP';
                     
-                    // Record interaction
                     recordInteraction(
                         data.seedData.seedId,
                         data.seedData.category,
@@ -248,54 +307,58 @@ document.addEventListener('DOMContentLoaded', () => {
         dwellObserver.observe(card);
     };
 
-    // HTML escape for card content
+    // ══════════════════════════════════
+    // Card Creation (no AI Generated tag)
+    // ══════════════════════════════════
     function escapeHtmlCard(str) {
         if (!str) return '';
         const d = document.createElement('div');
         d.textContent = str;
         return d.innerHTML;
     }
+
     function escapeTag(str) {
         return escapeHtmlCard(str).replace(/[^a-zA-Z0-9 &;]/g, '');
     }
 
-    // Create card element
+    // Ripple effect on card click
+    function addRipple(card, e) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        const rect = card.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        card.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+    }
+
     const createCard = (seedData, index) => {
         const card = document.createElement('div');
         card.classList.add('card');
-        card.style.animationDelay = `${index * 0.1}s`;
+        card.style.animationDelay = `${index * 0.08}s`;
         card.dataset.seedId = seedData.seedId;
-        card.dataset.category = seedData.category;
+        card.dataset.category = seedData.category || 'General';
 
         let content = seedData.content || '';
-        
-        // Handle old format (plain text) vs new format (object)
-        if (typeof seedData === 'string') {
-            content = seedData;
-        }
+        if (typeof seedData === 'string') content = seedData;
 
-        // Clean up content — join multi-line into single flowing text
         const fullText = content.trim().split('\n').filter(l => l.length > 0).join(' ');
-
-        // Estimate reading time
         const wordCount = fullText.split(/\s+/).length;
         const readMin = Math.max(1, Math.round(wordCount / 200));
 
-        // Tags (up to 2)
         const tags = (seedData.tags || []).slice(0, 2);
         const tagHtml = tags.map(t => `<span class="tag-pill">${escapeTag(t)}</span>`).join('');
 
-        // Source badge
-        const sourceBadge = seedData.source === 'GENERATED' 
-            ? `<span class="source-badge generated">AI Generated</span>` 
-            : '';
+        // Category badge with data attribute for color
+        const catName = seedData.category || 'General';
 
         card.innerHTML = `
             <div class="card-header">
-                <span class="category-badge">${seedData.category || 'General'}</span>
-                ${sourceBadge}
+                <span class="category-badge" data-cat="${escapeHtmlCard(catName)}">${escapeHtmlCard(catName)}</span>
                 <button class="like-btn" data-seed-id="${seedData.seedId}">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                     </svg>
                 </button>
@@ -309,14 +372,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="tag-list">${tagHtml}</span>
             </div>
         `;
+
+        // Sound + ripple on card click/touch
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.like-btn')) return;
+            playTapSound();
+            addRipple(card, e);
+        });
         
-        // Add like button handler
+        // Like button
         const likeBtn = card.querySelector('.like-btn');
         likeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             likeBtn.classList.toggle('liked');
-            
             if (likeBtn.classList.contains('liked')) {
+                playLikeSound();
                 recordInteraction(seedData.seedId, seedData.category, 'LIKE');
             }
         });
@@ -325,7 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     };
 
-    // Render cards
+    // ══════════════════════════════════
+    // Rendering
+    // ══════════════════════════════════
     const renderCards = () => {
         isLoading = true;
         loadingIndicator?.classList.add('active');
@@ -334,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const seedsToRender = allSeeds.slice(cardsRendered, cardsRendered + cardsPerPage);
 
         seedsToRender.forEach((seedData, index) => {
-            if(seedData && (seedData.content || typeof seedData === 'string')) {
+            if (seedData && (seedData.content || typeof seedData === 'string')) {
                 const card = createCard(seedData, index);
                 fragment.appendChild(card);
             }
@@ -350,27 +422,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     };
 
-    // Normalize wall post data to a consistent shape for rendering
-    const normalizePost = (post) => {
-        return {
-            seedId: post.post_id || post.seedId || post.postId || ('seed_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
-            content: post.content || '',
-            category: post.category || 'General',
-            tags: post.tags || [],
-            metaConfig: post.meta_config || post.metaConfig || null,
-            source: post.source || 'SEED',
-            batch: post.batch || 1
-        };
-    };
+    const normalizePost = (post) => ({
+        seedId: post.post_id || post.seedId || post.postId || ('seed_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+        content: post.content || '',
+        category: post.category || 'General',
+        tags: post.tags || [],
+        metaConfig: post.meta_config || post.metaConfig || null,
+        source: post.source || 'SEED',
+        batch: post.batch || 1
+    });
 
-    // Fetch user's wall (initial load)
+    // ══════════════════════════════════
+    // Fetch & load wall
+    // ══════════════════════════════════
     const fetchAllSeeds = async () => {
         try {
-            // Remove skeleton loaders
             const skeletons = wall.querySelectorAll('.skeleton-card');
-            skeletons.forEach(skeleton => skeleton.remove());
+            skeletons.forEach(s => s.remove());
 
-            // Load from user's wall API
             const response = await authFetch(`/v1/wall/${userId}`);
             if (response.ok) {
                 const data = await response.json();
@@ -378,16 +447,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 allSeeds = posts.map(normalizePost);
             }
 
-            // Fallback: if wall is empty, try seeds API directly
             if (!allSeeds || allSeeds.length === 0) {
                 const fallback = await authFetch('/v1/seeds/with-meta?limit=15');
-                if (fallback.ok) {
-                    allSeeds = await fallback.json();
-                }
+                if (fallback.ok) allSeeds = await fallback.json();
             }
 
             if (!allSeeds || allSeeds.length === 0) {
-                wall.innerHTML = '<p class="error-message">No seeds found. Generate some seeds using the button in the right panel!</p>';
+                wall.innerHTML = '<p class="error-message">No stories found. Generate some seeds using the button in the right panel!</p>';
                 return;
             }
 
@@ -399,36 +465,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Failed to load wall:', error);
-            wall.innerHTML = `<p class="error-message">Failed to load your wall. Is the backend running?</p>`;
+            wall.innerHTML = '<p class="error-message">Failed to load your wall. Is the backend running?</p>';
         }
     };
 
-    // Generate new seeds
     const generateSeeds = async () => {
         if (!generateSeedsBtn) return;
-        
         const originalText = generateSeedsBtn.innerHTML;
-        generateSeedsBtn.innerHTML = `
-            <div class="spinner"></div>
-            Generating...
-        `;
+        generateSeedsBtn.innerHTML = '<div class="spinner"></div> Generating...';
         generateSeedsBtn.disabled = true;
 
         try {
             const response = await authFetch('/v1/seeds/generate', { method: 'POST' });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             await response.text();
-            
-            // Refresh the feed after generation
-            setTimeout(() => {
-                fetchAllSeeds();
-            }, 500);
-            
+            setTimeout(() => fetchAllSeeds(), 500);
         } catch (error) {
             console.error('Failed to generate seeds:', error);
-            alert('Failed to generate seeds. Please check the console for details.');
+            alert('Failed to generate seeds.');
         } finally {
             setTimeout(() => {
                 generateSeedsBtn.innerHTML = originalText;
@@ -437,46 +491,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Fetch next batch of personalized posts for the wall
     const fetchPersonalizedSeeds = async () => {
-        if (isLoadingPersonalized || personalizedSeedsLoaded) return;
+        if (isLoadingPersonalized || personalizedSeedsLoaded || !poolGenerationEnabled) return;
         isLoadingPersonalized = true;
         
         try {
-            // Generate next batch via wall API
             const response = await authFetch(`/v1/wall/${userId}/next`, { method: 'POST' });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             const data = await response.json();
             const newPosts = (data.posts || []).map(normalizePost);
             
             if (newPosts.length > 0) {
-                // Add a separator before generated posts
                 const separator = document.createElement('div');
                 separator.className = 'personalized-separator';
                 separator.innerHTML = `
                     <div class="separator-line"></div>
                     <div class="separator-text">
-                        <span class="separator-icon">✨</span>
+                        <span class="separator-icon">&#10024;</span>
                         <span>Generated For You (Batch ${data.batch || '?'})</span>
-                        <span class="separator-icon">✨</span>
+                        <span class="separator-icon">&#10024;</span>
                     </div>
                     <div class="separator-line"></div>
                 `;
                 wall.appendChild(separator);
                 
-                // Add to allSeeds and render
                 allSeeds = allSeeds.concat(newPosts);
                 personalizedSeedsLoaded = true;
                 renderCards();
-                
-                console.log(`Loaded ${newPosts.length} generated posts (batch ${data.batch})`);
             } else {
-                console.log('No personalized posts generated. Keep interacting!');
-                personalizedSeedsLoaded = true; // prevent re-triggered empty calls
+                personalizedSeedsLoaded = true;
             }
         } catch (error) {
             console.error('Failed to load next wall batch:', error);
@@ -485,56 +529,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Infinite scroll handler
+    // ══════════════════════════════════
+    // Scroll
+    // ══════════════════════════════════
     const handleScroll = () => {
         if (isLoading) return;
-        
         const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
         
-        // Show/hide scroll to top button
         if (scrollTopBtn) {
-            if (scrollTop > 500) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
-            }
+            scrollTopBtn.classList.toggle('visible', scrollTop > 500);
         }
         
-        // Load more cards if available
         if (scrollTop + clientHeight >= scrollHeight - 100) {
             if (cardsRendered < allSeeds.length) {
                 renderCards();
-            } else if (!isLoadingPersonalized) {
-                // All rendered, load next generated batch from wall API
-                personalizedSeedsLoaded = false; // Allow repeated batches
+            } else if (!isLoadingPersonalized && poolGenerationEnabled) {
+                personalizedSeedsLoaded = false;
                 fetchPersonalizedSeeds();
             }
         }
     };
 
-    // Scroll to top
-    const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    };
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Navigation button handlers
-    const navButtons = document.querySelectorAll('.nav-btn');
-    navButtons.forEach(btn => {
+    // ══════════════════════════════════
+    // Nav buttons
+    // ══════════════════════════════════
+    document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            navButtons.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            playTapSound();
         });
     });
 
-    // Category chip handlers
-    const categoryChips = document.querySelectorAll('.category-chip');
-    categoryChips.forEach(chip => {
+    // Category chips
+    document.querySelectorAll('.category-chip').forEach(chip => {
         chip.addEventListener('click', async () => {
-            categoryChips.forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
+            playTapSound();
             
             const category = chip.textContent.trim();
             if (category === 'All') {
@@ -545,7 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Fetch seeds by category
     const fetchSeedsByCategory = async (category) => {
         try {
             wall.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>';
@@ -562,77 +595,58 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullCategory = categoryMap[category] || category;
             const response = await authFetch(`/v1/seeds/by-category/${encodeURIComponent(fullCategory)}`);
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             allSeeds = await response.json();
             
             if (!allSeeds || allSeeds.length === 0) {
-                wall.innerHTML = `<p class="error-message">No seeds found for ${category}. Try generating more seeds!</p>`;
+                wall.innerHTML = `<p class="error-message">No stories found for ${category}. Try generating more seeds!</p>`;
                 return;
             }
             
             wall.innerHTML = '';
             cardsRendered = 0;
-            personalizedSeedsLoaded = false; // Reset personalized flag
+            personalizedSeedsLoaded = false;
             isLoadingPersonalized = false;
             renderCards();
             
         } catch (error) {
             console.error('Failed to load seeds by category:', error);
-            wall.innerHTML = `<p class="error-message">Failed to load ${category} seeds.</p>`;
+            wall.innerHTML = `<p class="error-message">Failed to load ${category} stories.</p>`;
         }
     };
 
-    // View toggle handlers
-    const viewButtons = document.querySelectorAll('.view-btn');
-    viewButtons.forEach(btn => {
+    // View toggle
+    document.querySelectorAll('.view-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            viewButtons.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            const view = btn.dataset.view;
-            if (view === 'list') {
-                wall.style.gridTemplateColumns = '1fr';
-            } else {
-                wall.style.gridTemplateColumns = '';
-            }
+            playTapSound();
+            wall.style.gridTemplateColumns = btn.dataset.view === 'list' ? '1fr' : '';
         });
     });
 
+    // ══════════════════════════════════
     // Event listeners
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', fetchAllSeeds);
-    }
-    
-    if (generateSeedsBtn) {
-        generateSeedsBtn.addEventListener('click', generateSeeds);
-    }
-    
-    if (scrollTopBtn) {
-        scrollTopBtn.addEventListener('click', scrollToTop);
-    }
+    // ══════════════════════════════════
+    if (refreshBtn) refreshBtn.addEventListener('click', () => { playTapSound(); fetchAllSeeds(); });
+    if (generateSeedsBtn) generateSeedsBtn.addEventListener('click', () => { playTapSound(); generateSeeds(); });
+    if (scrollTopBtn) scrollTopBtn.addEventListener('click', scrollToTop);
     
     window.addEventListener('scroll', handleScroll, { passive: true });
     
     // Initial load
     fetchAllSeeds();
 
-    // Add keyboard shortcuts
+    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-        // R key to refresh
         if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
-            const activeElement = document.activeElement;
-            if (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA') {
+            const el = document.activeElement;
+            if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') {
                 e.preventDefault();
                 fetchAllSeeds();
             }
         }
-        
-        // ESC to scroll to top
-        if (e.key === 'Escape') {
-            scrollToTop();
-        }
+        if (e.key === 'Escape') scrollToTop();
     });
 });

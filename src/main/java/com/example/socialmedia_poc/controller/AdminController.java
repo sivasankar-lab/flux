@@ -172,6 +172,7 @@ public class AdminController {
         settings.put("grok_key", ApiKeyStore.mask(apiKeyStore.getGrokApiKey()));
         settings.put("grok_key_set", !apiKeyStore.getGrokApiKey().isBlank());
         settings.put("llm_provider", llmProvider);
+        settings.put("pool_generation_enabled", apiKeyStore.isPoolGenerationEnabled());
         return ResponseEntity.ok(Map.of("status", "success", "settings", settings));
     }
 
@@ -200,5 +201,16 @@ public class AdminController {
         }
 
         return ResponseEntity.ok(Map.of("status", "success", "message", "Settings updated", "updated", updated));
+    }
+
+    @PutMapping("/settings/pool-generation")
+    public ResponseEntity<?> togglePoolGeneration(@RequestBody Map<String, Object> request) {
+        Object enabledObj = request.get("enabled");
+        if (enabledObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "'enabled' field required"));
+        }
+        boolean enabled = Boolean.parseBoolean(enabledObj.toString());
+        apiKeyStore.setPoolGenerationEnabled(enabled);
+        return ResponseEntity.ok(Map.of("status", "success", "pool_generation_enabled", enabled));
     }
 }

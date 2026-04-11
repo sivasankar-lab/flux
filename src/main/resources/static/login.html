@@ -22,11 +22,23 @@
             width: 100%;
             max-width: 420px;
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 24px;
-            padding: 3rem;
+            padding: 2.5rem;
             box-shadow: var(--shadow-xl);
+            animation: scaleIn 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
         }
         
         .auth-logo {
@@ -48,67 +60,88 @@
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
+
+        .auth-theme-toggle {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 1rem;
+            transition: all 0.25s ease;
+        }
+
+        .auth-theme-toggle:hover {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
         
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
         
         .form-group input {
             width: 100%;
-            padding: 0.875rem 1rem;
-            background: rgba(26, 26, 46, 0.5);
+            padding: 0.75rem 1rem;
+            background: var(--input-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 10px;
             color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
         }
         
         .form-group input:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
         }
         
         .auth-btn {
             width: 100%;
-            padding: 1rem;
+            padding: 0.85rem;
             background: var(--accent-gradient);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
+            transition: all 0.25s ease;
+            margin-top: 0.75rem;
         }
         
         .auth-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px var(--glow-color);
         }
         
-        .auth-btn:active {
-            transform: translateY(0);
-        }
-        
-        .auth-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .auth-btn:active { transform: translateY(0); }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         
         .auth-divider {
             text-align: center;
-            margin: 2rem 0;
+            margin: 1.5rem 0;
             position: relative;
         }
         
@@ -127,13 +160,15 @@
             background: var(--card-bg);
             padding: 0 1rem;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
         
         .auth-switch {
             text-align: center;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
         }
         
         .auth-switch a {
@@ -143,33 +178,41 @@
             cursor: pointer;
         }
         
-        .auth-switch a:hover {
-            text-decoration: underline;
-        }
+        .auth-switch a:hover { text-decoration: underline; }
         
         .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            padding: 0.75rem 1rem;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+            padding: 0.65rem 1rem;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             margin-bottom: 1rem;
+        }
+
+        [data-theme="dark"] .error-message {
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
         }
         
         .success-message {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #86efac;
-            padding: 0.75rem 1rem;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #059669;
+            padding: 0.65rem 1rem;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             margin-bottom: 1rem;
         }
-        
-        .hidden {
-            display: none;
+
+        [data-theme="dark"] .success-message {
+            color: #86efac;
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
         }
+        
+        .hidden { display: none; }
         
         .google-btn-container {
             display: flex;
@@ -177,18 +220,20 @@
             margin-top: 1rem;
         }
         
-        #googleBtnWrapper {
-            display: none;
-        }
-        
-        #googleBtnWrapper.visible {
-            display: block;
+        #googleBtnWrapper { display: none; }
+        #googleBtnWrapper.visible { display: block; }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card">
+            <button class="auth-theme-toggle" id="loginThemeToggle" title="Toggle theme">&#9790;</button>
+
             <div class="auth-logo">
                 <h1>Flux</h1>
                 <p>Your AI-Native Social Feed</p>
@@ -201,16 +246,16 @@
             <form id="loginForm">
                 <div class="form-group">
                     <label for="loginUsername">Username</label>
-                    <input type="text" id="loginUsername" name="username" required autocomplete="username">
+                    <input type="text" id="loginUsername" name="username" required autocomplete="username" placeholder="Enter your username">
                 </div>
                 <div class="form-group">
                     <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
+                    <input type="password" id="loginPassword" name="password" required autocomplete="current-password" placeholder="Enter your password">
                 </div>
                 <button type="submit" class="auth-btn" id="loginBtn">Login</button>
             </form>
             
-            <!-- Google Sign-In Button (shown only if configured) -->
+            <!-- Google Sign-In -->
             <div id="googleBtnWrapper">
                 <div class="auth-divider">
                     <span>OR</span>
@@ -228,19 +273,19 @@
             <form id="registerForm" class="hidden">
                 <div class="form-group">
                     <label for="registerUsername">Username</label>
-                    <input type="text" id="registerUsername" name="username" required autocomplete="username">
+                    <input type="text" id="registerUsername" name="username" required autocomplete="username" placeholder="Choose a username">
                 </div>
                 <div class="form-group">
                     <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" name="email" required autocomplete="email">
+                    <input type="email" id="registerEmail" name="email" required autocomplete="email" placeholder="your@email.com">
                 </div>
                 <div class="form-group">
                     <label for="registerDisplayName">Display Name</label>
-                    <input type="text" id="registerDisplayName" name="display_name" required autocomplete="name">
+                    <input type="text" id="registerDisplayName" name="display_name" required autocomplete="name" placeholder="How should we call you?">
                 </div>
                 <div class="form-group">
                     <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" name="password" required autocomplete="new-password">
+                    <input type="password" id="registerPassword" name="password" required autocomplete="new-password" placeholder="Create a password">
                 </div>
                 <button type="submit" class="auth-btn" id="registerBtn">Create Account</button>
             </form>
@@ -252,6 +297,19 @@
         </div>
     </div>
     
+    <script>
+    // Theme toggle on login page
+    const loginThemeToggle = document.getElementById('loginThemeToggle');
+    const savedTheme = localStorage.getItem('flux_theme') || 'light';
+    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    loginThemeToggle.innerHTML = savedTheme === 'dark' ? '&#9728;' : '&#9790;';
+    loginThemeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('flux_theme', isDark ? 'light' : 'dark');
+        loginThemeToggle.innerHTML = isDark ? '&#9790;' : '&#9728;';
+    });
+    </script>
     <script src="/js/auth.js"></script>
 </body>
 </html>

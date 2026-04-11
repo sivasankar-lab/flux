@@ -74,32 +74,54 @@ public class PostPoolService {
             return deduplicateByContent(coldStartRecommendation(pool, count));
         }
 
-        List<ScoredPost> scored = pool.stream()
+        // Group scored posts by category, sorted by score within each category
+        Map<String, List<ScoredPost>> scoredByCategory = pool.stream()
                 .filter(p -> p.getContent() != null && !p.getContent().isEmpty())
                 .map(p -> new ScoredPost(p, scorePost(p, profile)))
-                .sorted(Comparator.comparingDouble(ScoredPost::getScore).reversed())
-                .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(
+                        sp -> sp.post.getCategory() != null ? sp.post.getCategory() : "General",
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                list -> { list.sort(Comparator.comparingDouble(ScoredPost::getScore).reversed()); return list; }
+                        )
+                ));
 
+        // Equal distribution: round-robin across all categories
         List<PoolPost> result = new ArrayList<>();
         Set<String> seenContentHashes = new HashSet<>();
+        List<String> categories = new ArrayList<>(scoredByCategory.keySet());
+        Collections.shuffle(categories); // randomise starting order
+        int equalShare = Math.max(1, (int) Math.ceil((double) count / categories.size()));
         Map<String, Integer> categoryCount = new HashMap<>();
-        int maxPerCategory = Math.max(2, (int) Math.ceil(count * 0.4));
 
-        for (ScoredPost sp : scored) {
-            if (result.size() >= count) break;
-            String hash = contentHash(sp.post.getContent());
-            if (seenContentHashes.contains(hash)) continue; // skip duplicate content
-            String cat = sp.post.getCategory();
+        // Phase 1: fill equal share per category (round-robin)
+        int idx = 0;
+        int passes = 0;
+        while (result.size() < count && passes < count * 2) {
+            String cat = categories.get(idx % categories.size());
             int current = categoryCount.getOrDefault(cat, 0);
-            if (current < maxPerCategory) {
-                result.add(sp.post);
-                seenContentHashes.add(hash);
+            List<ScoredPost> catPosts = scoredByCategory.getOrDefault(cat, Collections.emptyList());
+
+            if (current < equalShare && current < catPosts.size()) {
+                ScoredPost sp = catPosts.get(current);
+                String hash = contentHash(sp.post.getContent());
+                if (!seenContentHashes.contains(hash)) {
+                    result.add(sp.post);
+                    seenContentHashes.add(hash);
+                }
                 categoryCount.put(cat, current + 1);
             }
+            idx++;
+            if (idx % categories.size() == 0) passes++;
         }
 
+        // Phase 2: if still under count, fill from any remaining posts by score
         if (result.size() < count) {
-            for (ScoredPost sp : scored) {
+            List<ScoredPost> allScored = scoredByCategory.values().stream()
+                    .flatMap(List::stream)
+                    .sorted(Comparator.comparingDouble(ScoredPost::getScore).reversed())
+                    .collect(Collectors.toList());
+            for (ScoredPost sp : allScored) {
                 if (result.size() >= count) break;
                 String hash = contentHash(sp.post.getContent());
                 if (!seenContentHashes.contains(hash)) {
