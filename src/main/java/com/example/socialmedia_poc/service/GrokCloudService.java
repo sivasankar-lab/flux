@@ -1,5 +1,6 @@
 package com.example.socialmedia_poc.service;
 
+import com.example.socialmedia_poc.config.ApiKeyStore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -25,16 +26,17 @@ public class GrokCloudService implements LLMService {
     private final WebClient webClient;
     private final String model;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final ApiKeyStore apiKeyStore;
 
     public GrokCloudService(WebClient.Builder webClientBuilder,
-                            @Value("${grok.api-key:}") String apiKey,
+                            ApiKeyStore apiKeyStore,
                             @Value("${grok.model:grok-3-mini-fast}") String model,
                             @Value("${grok.baseurl:https://api.x.ai}") String baseUrl) {
         this.model = model;
+        this.apiKeyStore = apiKeyStore;
         this.webClient = webClientBuilder
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .codecs(config -> config.defaultCodecs().maxInMemorySize(2 * 1024 * 1024))
                 .build();
     }
@@ -62,6 +64,7 @@ public class GrokCloudService implements LLMService {
 
         String response = webClient.post()
                 .uri("/v1/chat/completions")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKeyStore.getGrokApiKey())
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)

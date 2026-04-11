@@ -1,11 +1,13 @@
 package com.example.socialmedia_poc.controller;
 
+import com.example.socialmedia_poc.config.ApiKeyStore;
 import com.example.socialmedia_poc.model.PoolPost;
 import com.example.socialmedia_poc.model.User;
 import com.example.socialmedia_poc.repository.PoolPostRepository;
 import com.example.socialmedia_poc.repository.UserRepository;
 import com.example.socialmedia_poc.repository.WallPostRepository;
 import com.example.socialmedia_poc.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,15 +26,21 @@ public class AdminController {
     private final UserRepository userRepository;
     private final PoolPostRepository poolPostRepository;
     private final WallPostRepository wallPostRepository;
+    private final ApiKeyStore apiKeyStore;
+    private final String llmProvider;
 
     public AdminController(UserService userService,
                            UserRepository userRepository,
                            PoolPostRepository poolPostRepository,
-                           WallPostRepository wallPostRepository) {
+                           WallPostRepository wallPostRepository,
+                           ApiKeyStore apiKeyStore,
+                           @Value("${llm.provider:huggingface}") String llmProvider) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.poolPostRepository = poolPostRepository;
         this.wallPostRepository = wallPostRepository;
+        this.apiKeyStore = apiKeyStore;
+        this.llmProvider = llmProvider;
     }
 
     // ── Dashboard stats ──
@@ -152,5 +160,45 @@ public class AdminController {
                         Collectors.counting()));
 
         return ResponseEntity.ok(Map.of("status", "success", "categories", categoryCounts));
+    }
+
+    // ── Settings (API keys) ──
+
+    @GetMapping("/settings")
+    public ResponseEntity<?> getSettings() {
+        Map<String, Object> settings = new LinkedHashMap<>();
+        settings.put("huggingface_key", ApiKeyStore.mask(apiKeyStore.getHuggingFaceApiKey()));
+        settings.put("huggingface_key_set", !apiKeyStore.getHuggingFaceApiKey().isBlank());
+        settings.put("grok_key", ApiKeyStore.mask(apiKeyStore.getGrokApiKey()));
+        settings.put("grok_key_set", !apiKeyStore.getGrokApiKey().isBlank());
+        settings.put("llm_provider", llmProvider);
+        return ResponseEntity.ok(Map.of("status", "success", "settings", settings));
+    }
+
+    @PutMapping("/settings")
+    public ResponseEntity<?> updateSettings(@RequestBody Map<String, String> request) {
+        List<String> updated = new ArrayList<>();
+
+        if (request.containsKey("huggingface_key")) {
+            String key = request.get("huggingface_key");
+            if (key != null && !key.isBlank()) {
+                apiKeyStore.setHuggingFaceApiKey(key);
+                updated.add("huggingface_key");
+            }
+        }
+
+        if (request.containsKey("grok_key")) {
+            String key = request.get("grok_key");
+            if (key != null && !key.isBlank()) {
+                apiKeyStore.setGrokApiKey(key);
+                updated.add("grok_key");
+            }
+        }
+
+        if (updated.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "No valid keys provided"));
+        }
+
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Settings updated", "updated", updated));
     }
 }

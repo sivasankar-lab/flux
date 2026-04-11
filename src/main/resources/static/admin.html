@@ -414,6 +414,7 @@
             <button class="tab active" data-tab="users">Users</button>
             <button class="tab" data-tab="posts">Pool Posts</button>
             <button class="tab" data-tab="categories">Categories</button>
+            <button class="tab" data-tab="settings">Settings</button>
         </div>
 
         <!-- Users Panel -->
@@ -460,6 +461,52 @@
                 </thead>
                 <tbody id="categoriesBody"></tbody>
             </table>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="tab-panel" id="panel-settings">
+            <div style="max-width:600px;">
+                <h2 style="color:var(--text-primary);margin-bottom:1.5rem;font-family:'Space Grotesk',sans-serif;">API Key Settings</h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;">
+                    Set your LLM API keys here. Keys are stored in-memory and take effect immediately. They will reset on server restart unless also set via environment variables.
+                </p>
+
+                <!-- HuggingFace -->
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;color:var(--text-secondary);font-size:0.9rem;margin-bottom:0.5rem;font-weight:600;">
+                        HuggingFace API Key
+                    </label>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <input type="password" id="settingsHfKey" placeholder="hf_..." style="flex:1;padding:0.6rem 0.75rem;background:rgba(26,26,46,0.5);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
+                        <button class="btn btn-sm" onclick="toggleKeyVisibility('settingsHfKey', this)">Show</button>
+                    </div>
+                    <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--text-muted);" id="hfKeyStatus">Loading...</div>
+                </div>
+
+                <!-- Grok -->
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;color:var(--text-secondary);font-size:0.9rem;margin-bottom:0.5rem;font-weight:600;">
+                        Grok (xAI) API Key
+                    </label>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <input type="password" id="settingsGrokKey" placeholder="xai-..." style="flex:1;padding:0.6rem 0.75rem;background:rgba(26,26,46,0.5);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
+                        <button class="btn btn-sm" onclick="toggleKeyVisibility('settingsGrokKey', this)">Show</button>
+                    </div>
+                    <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--text-muted);" id="grokKeyStatus">Loading...</div>
+                </div>
+
+                <!-- Provider info -->
+                <div style="margin-bottom:1.5rem;padding:1rem;background:rgba(26,26,46,0.3);border:1px solid var(--border-color);border-radius:8px;">
+                    <div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.3rem;">Active LLM Provider</div>
+                    <div style="color:var(--text-primary);font-size:1rem;font-weight:600;" id="settingsProvider">-</div>
+                </div>
+
+                <!-- Actions -->
+                <div style="display:flex;gap:0.75rem;">
+                    <button class="btn btn-primary" id="saveSettingsBtn">Save Keys</button>
+                    <button class="btn" id="testHfKeyBtn">Test HF Key</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -759,6 +806,9 @@
             if (tab.dataset.tab === 'posts') {
                 loadPosts(currentPostPage);
             }
+            if (tab.dataset.tab === 'settings') {
+                loadSettings();
+            }
         });
     });
 
@@ -793,6 +843,98 @@
         toast.textContent = message;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ── Settings ──
+    async function loadSettings() {
+        try {
+            const res = await authFetch('/v1/admin/settings');
+            const data = await res.json();
+            if (data.status === 'success') {
+                const s = data.settings;
+                document.getElementById('hfKeyStatus').textContent =
+                    s.huggingface_key_set ? 'Current: ' + s.huggingface_key : 'Not set';
+                document.getElementById('hfKeyStatus').style.color =
+                    s.huggingface_key_set ? '#86efac' : '#fca5a5';
+                document.getElementById('grokKeyStatus').textContent =
+                    s.grok_key_set ? 'Current: ' + s.grok_key : 'Not set';
+                document.getElementById('grokKeyStatus').style.color =
+                    s.grok_key_set ? '#86efac' : '#fca5a5';
+                document.getElementById('settingsProvider').textContent = s.llm_provider || '-';
+            }
+        } catch (e) {
+            console.error('Failed to load settings:', e);
+        }
+    }
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+        const hfKey = document.getElementById('settingsHfKey').value.trim();
+        const grokKey = document.getElementById('settingsGrokKey').value.trim();
+
+        if (!hfKey && !grokKey) {
+            showToast('Enter at least one API key', 'error');
+            return;
+        }
+
+        const body = {};
+        if (hfKey) body.huggingface_key = hfKey;
+        if (grokKey) body.grok_key = grokKey;
+
+        try {
+            const res = await authFetch('/v1/admin/settings', {
+                method: 'PUT',
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('API keys saved! ' + (data.updated || []).join(', '), 'success');
+                document.getElementById('settingsHfKey').value = '';
+                document.getElementById('settingsGrokKey').value = '';
+                loadSettings();
+            } else {
+                showToast(data.message || 'Failed to save', 'error');
+            }
+        } catch (e) {
+            showToast('Failed to save settings', 'error');
+        }
+    });
+
+    document.getElementById('testHfKeyBtn').addEventListener('click', async () => {
+        showToast('Testing HuggingFace key...', 'success');
+        try {
+            const res = await authFetch('/v1/playground/provider');
+            const data = await res.json();
+            if (data.provider) {
+                // Now try a tiny generation to verify the key works
+                const genRes = await authFetch('/v1/playground/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        prompt: 'Say hello in one word.',
+                        max_tokens: 10,
+                        temperature: 0.1
+                    })
+                });
+                const genData = await genRes.json();
+                if (genData.status === 'success') {
+                    showToast('HF key works! Response: ' + (genData.cleaned || '').substring(0, 50), 'success');
+                } else {
+                    showToast('HF key test failed: ' + (genData.error || 'Unknown error'), 'error');
+                }
+            }
+        } catch (e) {
+            showToast('Test failed: ' + e.message, 'error');
+        }
+    });
+
+    function toggleKeyVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = 'Hide';
+        } else {
+            input.type = 'password';
+            btn.textContent = 'Show';
+        }
     }
     </script>
 </body>

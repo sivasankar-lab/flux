@@ -1,5 +1,6 @@
 package com.example.socialmedia_poc.controller;
 
+import com.example.socialmedia_poc.config.ApiKeyStore;
 import com.example.socialmedia_poc.model.Meta;
 import com.example.socialmedia_poc.service.LLMService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -30,17 +31,17 @@ public class PlaygroundController {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final LLMService llmService;
-    private final String huggingFaceApiKey;
+    private final ApiKeyStore apiKeyStore;
     private final String huggingFaceModel;
     private final String huggingFaceBaseUrl;
 
     public PlaygroundController(
             @Qualifier("activeLLMService") LLMService llmService,
-            @Value("${huggingface.api-key:}") String huggingFaceApiKey,
+            ApiKeyStore apiKeyStore,
             @Value("${huggingface.model:meta-llama/Llama-3.3-70B-Instruct}") String huggingFaceModel,
             @Value("${huggingface.baseurl:https://router.huggingface.co}") String huggingFaceBaseUrl) {
         this.llmService = llmService;
-        this.huggingFaceApiKey = huggingFaceApiKey;
+        this.apiKeyStore = apiKeyStore;
         this.huggingFaceModel = huggingFaceModel;
         this.huggingFaceBaseUrl = huggingFaceBaseUrl;
     }
@@ -97,7 +98,7 @@ public class PlaygroundController {
             WebClient client = WebClient.builder()
                     .baseUrl(huggingFaceBaseUrl)
                     .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + huggingFaceApiKey)
+                    .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKeyStore.getHuggingFaceApiKey())
                     .codecs(c -> c.defaultCodecs().maxInMemorySize(2 * 1024 * 1024))
                     .build();
 
