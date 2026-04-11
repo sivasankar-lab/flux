@@ -3,115 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flux — Content Playground</title>
+    <title>Flux &#8212; Content Playground</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
     <style>
-        :root {
-            --bg-primary: #0a0a12;
-            --bg-secondary: #13131f;
-            --bg-tertiary: #1a1a2e;
-            --accent-primary: #00e5ff;
-            --accent-secondary: #7c3aed;
-            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0b8;
-            --text-muted: #6e6e88;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --card-bg: rgba(26, 26, 46, 0.6);
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background:
-                radial-gradient(ellipse at 20% 30%, rgba(102, 126, 234, 0.12) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 70%, rgba(118, 75, 162, 0.12) 0%, transparent 50%);
-            pointer-events: none; z-index: 0;
-        }
-
-        /* Header */
-        .header {
+        /* ═══════════ Playground-specific styles ═══════════ */
+        .pg-header {
             position: sticky; top: 0; z-index: 100;
-            background: rgba(10, 10, 18, 0.85);
+            background: var(--nav-bg);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem;
+            padding: 0.8rem 2rem;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .header-left { display: flex; align-items: center; gap: 1rem; }
-        .header-left svg { color: var(--accent-primary); }
-        .header-left h1 {
+        .pg-header-left { display: flex; align-items: center; gap: 1rem; }
+        .pg-header-left svg { color: var(--accent-primary); }
+        .pg-header-left h1 {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.3rem; font-weight: 600;
+            font-size: 1.3rem; font-weight: 600; color: var(--text-primary);
         }
-        .header-left h1 span { color: var(--accent-primary); }
+        .pg-header-left h1 span { color: var(--accent-primary); }
+        .pg-header-right { display: flex; align-items: center; gap: 0.75rem; }
         .provider-badge {
-            font-size: 0.75rem; padding: 0.3rem 0.8rem;
-            background: rgba(124, 58, 237, 0.2);
-            border: 1px solid rgba(124, 58, 237, 0.4);
-            border-radius: 20px; color: #c4b5fd;
+            font-size: 0.72rem; padding: 0.25rem 0.65rem;
+            background: rgba(102, 126, 234, 0.12);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px; color: var(--accent-primary); font-weight: 500;
         }
-        .back-link {
+        .pg-link {
             color: var(--text-secondary); text-decoration: none;
             font-size: 0.85rem; transition: color 0.2s;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
         }
-        .back-link:hover { color: var(--accent-primary); }
+        .pg-link:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
+        .pg-theme-toggle {
+            background: none; border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 0.35rem 0.65rem;
+            cursor: pointer; color: var(--text-primary);
+            font-size: 1rem; transition: all 0.3s;
+        }
+        .pg-theme-toggle:hover { border-color: var(--accent-primary); }
 
         /* Layout */
-        .container {
+        .pg-container {
             position: relative; z-index: 1;
-            max-width: 1400px; margin: 0 auto;
+            max-width: 1500px; margin: 0 auto;
             padding: 1.5rem 2rem;
             display: grid;
-            grid-template-columns: 420px 1fr;
+            grid-template-columns: 440px 1fr;
             gap: 1.5rem;
-            min-height: calc(100vh - 70px);
+            min-height: calc(100vh - 60px);
         }
 
         /* Panels */
-        .panel {
+        .pg-panel {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 1.5rem;
             overflow-y: auto;
         }
-        .panel-title {
+        .pg-panel-title {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1rem; font-weight: 600;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.25rem; color: var(--text-primary);
             display: flex; align-items: center; gap: 0.5rem;
         }
-        .panel-title svg { color: var(--accent-primary); width: 18px; height: 18px; }
+        .pg-panel-title svg { color: var(--accent-primary); width: 18px; height: 18px; }
 
-        /* Form elements */
-        .form-group { margin-bottom: 1rem; }
-        .form-group label {
-            display: block; font-size: 0.8rem; font-weight: 500;
-            color: var(--text-secondary); margin-bottom: 0.4rem;
+        /* Form */
+        .fg { margin-bottom: 1rem; }
+        .fg label {
+            display: block; font-size: 0.78rem; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: 0.35rem;
             letter-spacing: 0.03em;
         }
-        .form-group textarea,
-        .form-group input[type="text"],
-        .form-group select {
-            width: 100%; padding: 0.6rem 0.8rem;
-            background: rgba(10, 10, 18, 0.6);
+        .fg textarea, .fg input[type="text"], .fg select {
+            width: 100%; padding: 0.55rem 0.75rem;
+            background: var(--sidebar-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             color: var(--text-primary);
@@ -120,55 +93,69 @@
             transition: border-color 0.2s;
             outline: none;
         }
-        .form-group textarea:focus,
-        .form-group input[type="text"]:focus,
-        .form-group select:focus {
+        .fg textarea:focus, .fg input[type="text"]:focus, .fg select:focus {
             border-color: var(--accent-primary);
         }
-        .form-group textarea {
+        .fg textarea {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            resize: vertical;
-            line-height: 1.5;
+            font-size: 0.8rem; resize: vertical; line-height: 1.5;
         }
-        .form-group select {
+        .fg select {
             cursor: pointer; appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a0a0b8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.8rem center;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 0.8rem center;
             padding-right: 2.2rem;
         }
-        .form-group select option { background: #13131f; color: #fff; }
-        .form-group select optgroup {
-            background: #0a0a12; color: var(--accent-primary);
+        .fg select option { background: var(--card-bg); color: var(--text-primary); }
+        .fg select optgroup {
+            background: var(--sidebar-bg); color: var(--accent-primary);
             font-weight: 600; font-style: normal;
         }
 
         /* Sliders */
-        .slider-group { margin-bottom: 1rem; }
-        .slider-header {
+        .sg { margin-bottom: 0.85rem; }
+        .sg-header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.25rem;
         }
-        .slider-header label {
-            font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);
+        .sg-header label {
+            font-size: 0.78rem; font-weight: 500; color: var(--text-secondary);
         }
-        .slider-value {
+        .sg-val {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem; color: var(--accent-primary); font-weight: 600;
+            font-size: 0.78rem; color: var(--accent-primary); font-weight: 600;
         }
         input[type="range"] {
             -webkit-appearance: none; width: 100%; height: 4px;
-            background: var(--bg-tertiary); border-radius: 4px; outline: none;
+            background: var(--border-color); border-radius: 4px; outline: none;
         }
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 16px; height: 16px;
+            -webkit-appearance: none; width: 15px; height: 15px;
             background: var(--accent-primary); border-radius: 50%; cursor: pointer;
         }
 
+        /* Param grid (2-col layout for sliders) */
+        .param-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem;
+        }
+
+        /* Collapsible advanced section */
+        .advanced-toggle {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.8rem; color: var(--text-muted);
+            cursor: pointer; margin-bottom: 0.75rem;
+            padding: 0.4rem 0; border: none; background: none; width: 100%;
+            transition: color 0.2s;
+        }
+        .advanced-toggle:hover { color: var(--text-primary); }
+        .advanced-toggle svg { transition: transform 0.2s; width: 14px; height: 14px; }
+        .advanced-toggle.open svg { transform: rotate(90deg); }
+        .advanced-params { display: none; }
+        .advanced-params.open { display: block; }
+
         /* Buttons */
         .btn-generate {
-            width: 100%; padding: 0.8rem;
+            width: 100%; padding: 0.75rem;
             background: var(--accent-gradient);
             border: none; border-radius: 12px;
             color: white; font-weight: 600; font-size: 0.9rem;
@@ -176,7 +163,7 @@
             display: flex; align-items: center; justify-content: center; gap: 0.5rem;
             margin-top: 0.5rem;
         }
-        .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35); }
+        .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); }
         .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .btn-generate .spinner {
             width: 16px; height: 16px;
@@ -186,159 +173,168 @@
         }
         .btn-generate.loading .spinner { display: block; }
         .btn-generate.loading .btn-text { display: none; }
-
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .btn-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-        .btn-secondary {
-            flex: 1; padding: 0.55rem 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
+        .btn-sec {
+            flex: 1; padding: 0.5rem 0.7rem;
+            background: var(--sidebar-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px; color: var(--text-secondary);
             font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
         }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); }
+        .btn-sec:hover { background: var(--card-bg); color: var(--text-primary); border-color: var(--accent-primary); }
 
-        /* Output area */
+        /* Copy button */
+        .copy-btn {
+            font-size: 0.72rem; padding: 0.25rem 0.6rem;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-muted);
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 0.3rem;
+        }
+        .copy-btn:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
+        .copy-btn.copied { color: var(--accent-primary); border-color: var(--accent-primary); }
+
+        /* Output */
         .output-section { display: flex; flex-direction: column; gap: 1rem; }
 
         .output-card {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
+            border-radius: 16px; overflow: hidden;
         }
         .output-card-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0.8rem 1.2rem;
-            background: rgba(255, 255, 255, 0.02);
+            padding: 0.7rem 1.1rem;
+            background: var(--sidebar-bg);
             border-bottom: 1px solid var(--border-color);
         }
         .output-card-header h3 {
-            font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);
+            font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);
             display: flex; align-items: center; gap: 0.4rem;
         }
+        .output-card-header h3 svg { width: 15px; height: 15px; }
         .output-card-body {
-            padding: 1.2rem;
-            font-size: 0.9rem;
-            line-height: 1.7;
-            min-height: 80px;
+            padding: 1.1rem;
+            font-size: 0.9rem; line-height: 1.7;
+            min-height: 70px; color: var(--text-primary);
         }
         .output-card-body.mono {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            white-space: pre-wrap;
+            font-size: 0.78rem; white-space: pre-wrap;
             color: var(--text-secondary);
         }
         .output-placeholder {
-            color: var(--text-muted);
-            font-style: italic;
-            text-align: center;
-            padding: 2rem;
+            color: var(--text-muted); font-style: italic;
+            text-align: center; padding: 2rem;
         }
 
         /* Stats bar */
-        .stats-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .stats-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; }
         .stat-chip {
-            display: flex; align-items: center; gap: 0.4rem;
-            font-size: 0.75rem; padding: 0.35rem 0.7rem;
-            background: rgba(255, 255, 255, 0.04);
+            display: flex; align-items: center; gap: 0.35rem;
+            font-size: 0.72rem; padding: 0.3rem 0.6rem;
+            background: var(--sidebar-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px; color: var(--text-secondary);
         }
-        .stat-chip .stat-val {
+        .stat-chip .sv {
             font-family: 'JetBrains Mono', monospace;
             color: var(--accent-primary); font-weight: 600;
         }
 
         /* Preview card */
         .preview-card {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(19, 19, 31, 0.9));
+            background: var(--sidebar-bg);
             border: 1px solid var(--border-color);
-            border-radius: 14px; padding: 1.2rem 1.4rem;
+            border-radius: 14px; padding: 1.1rem 1.3rem;
         }
         .preview-card .cat-badge {
             display: inline-block; font-size: 0.7rem; font-weight: 600;
             padding: 0.2rem 0.6rem; border-radius: 6px;
-            background: rgba(0, 229, 255, 0.12); color: var(--accent-primary);
-            margin-bottom: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase;
+            background: rgba(102, 126, 234, 0.12); color: var(--accent-primary);
+            margin-bottom: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase;
         }
         .preview-card .content-text {
             font-size: 0.95rem; line-height: 1.7; color: var(--text-primary);
         }
-        .preview-card .source-badge {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            font-size: 0.65rem; margin-top: 0.8rem;
-            color: var(--text-muted); padding: 0.2rem 0.5rem;
-            background: rgba(255, 255, 255, 0.04); border-radius: 6px;
-        }
         .preview-card .model-tag {
-            display: inline-block; font-size: 0.6rem; margin-left: 0.5rem;
+            display: inline-block; font-size: 0.6rem; margin-top: 0.7rem;
             padding: 0.15rem 0.4rem; border-radius: 4px;
-            background: rgba(124, 58, 237, 0.15); color: #c4b5fd;
+            background: rgba(102, 126, 234, 0.1); color: var(--accent-primary);
         }
 
         /* History */
-        .history-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }
+        .history-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.6rem; }
         .history-item {
-            padding: 0.8rem 1rem;
-            background: rgba(10, 10, 18, 0.4);
+            padding: 0.7rem 0.9rem;
+            background: var(--sidebar-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px; cursor: pointer; transition: all 0.2s;
         }
-        .history-item:hover { border-color: rgba(0, 229, 255, 0.3); }
+        .history-item:hover { border-color: var(--accent-primary); }
         .history-item .hi-content {
             font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
             overflow: hidden;
         }
         .history-item .hi-meta {
-            display: flex; gap: 0.5rem; margin-top: 0.4rem;
-            font-size: 0.7rem; color: var(--text-muted); flex-wrap: wrap;
+            display: flex; gap: 0.5rem; margin-top: 0.35rem;
+            font-size: 0.68rem; color: var(--text-muted); flex-wrap: wrap;
         }
 
         /* Status log */
         .status-log {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem; color: var(--text-muted);
-            margin-top: 0.75rem; padding: 0.6rem 0.8rem;
-            background: rgba(10, 10, 18, 0.5);
-            border-radius: 8px; max-height: 100px;
+            font-size: 0.72rem; color: var(--text-muted);
+            margin-top: 0.75rem; padding: 0.5rem 0.7rem;
+            background: var(--sidebar-bg);
+            border-radius: 8px; max-height: 90px;
             overflow-y: auto; line-height: 1.6;
         }
-        .status-log .log-ok { color: var(--success); }
-        .status-log .log-err { color: var(--error); }
+        .status-log .log-ok { color: #10b981; }
+        .status-log .log-err { color: #ef4444; }
         .status-log .log-info { color: var(--accent-primary); }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        /* Config export card */
+        .config-json {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem; line-height: 1.5;
+            white-space: pre-wrap; word-break: break-all;
+            max-height: 300px; overflow-y: auto;
+            color: var(--text-secondary);
+        }
 
-        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+        @media (max-width: 960px) { .pg-container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <!-- Header -->
-<div class="header">
-    <div class="header-left">
-        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+<div class="pg-header">
+    <div class="pg-header-left">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
             <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2"/>
             <path d="M10 16 L16 10 L22 16 L16 22 Z" fill="currentColor"/>
         </svg>
         <h1><span>Flux</span> Playground</h1>
         <span class="provider-badge" id="providerBadge">loading...</span>
     </div>
-    <a href="/index.html" class="back-link">&larr; Back to Feed</a>
+    <div class="pg-header-right">
+        <button class="pg-theme-toggle" id="pgThemeToggle">&#9790;</button>
+        <a href="/index.html" class="pg-link">&#8592; Feed</a>
+        <a href="/admin.html" class="pg-link">Admin</a>
+    </div>
 </div>
 
-<!-- Main -->
-<div class="container">
+<!-- Main layout -->
+<div class="pg-container">
 
     <!-- Left: Controls -->
-    <div class="panel" style="max-height: calc(100vh - 100px);">
-        <div class="panel-title">
+    <div class="pg-panel" style="max-height: calc(100vh - 90px);">
+        <div class="pg-panel-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 20V10M6 20V4M18 20v-6"/>
             </svg>
@@ -346,77 +342,113 @@
         </div>
 
         <!-- Model -->
-        <div class="form-group">
+        <div class="fg">
             <label>Model</label>
             <select id="modelSelect">
-                <optgroup label="Large (70B+) — Best Quality">
-                    <option value="meta-llama/Llama-3.3-70B-Instruct" selected>Llama 3.3 70B Instruct — default</option>
+                <optgroup label="Large (70B+) &#8212; Best Quality">
+                    <option value="meta-llama/Llama-3.3-70B-Instruct" selected>Llama 3.3 70B Instruct &#8212; default</option>
                     <option value="meta-llama/Llama-3.1-70B-Instruct">Llama 3.1 70B Instruct</option>
                     <option value="Qwen/Qwen2.5-72B-Instruct">Qwen 2.5 72B Instruct</option>
                 </optgroup>
-                <optgroup label="Medium — Faster">
+                <optgroup label="Medium &#8212; Faster">
                     <option value="Qwen/Qwen2.5-Coder-32B-Instruct">Qwen 2.5 Coder 32B Instruct</option>
-                    <option value="meta-llama/Meta-Llama-3-8B-Instruct">Llama 3 8B Instruct — fastest</option>
+                    <option value="meta-llama/Meta-Llama-3-8B-Instruct">Llama 3 8B Instruct &#8212; fastest</option>
                 </optgroup>
             </select>
         </div>
 
         <!-- Category preset -->
-        <div class="form-group">
+        <div class="fg">
             <label>Category Preset</label>
             <select id="categorySelect">
-                <option value="">— Custom (no preset) —</option>
+                <option value="">&#8212; Custom (no preset) &#8212;</option>
             </select>
         </div>
 
         <!-- System Message -->
-        <div class="form-group">
+        <div class="fg">
             <label>System Message</label>
             <textarea id="systemMessage" rows="4" placeholder="You are Flux..."></textarea>
         </div>
 
         <!-- Prompt -->
-        <div class="form-group">
+        <div class="fg">
             <label>User Prompt</label>
             <textarea id="userPrompt" rows="5" placeholder="Generate a seed post..."></textarea>
         </div>
 
-        <!-- Temperature -->
-        <div class="slider-group">
-            <div class="slider-header">
-                <label>Temperature</label>
-                <span class="slider-value" id="tempValue">0.8</span>
+        <!-- Core params (2-col) -->
+        <div class="param-grid">
+            <div class="sg">
+                <div class="sg-header">
+                    <label>Temperature</label>
+                    <span class="sg-val" id="tempValue">0.8</span>
+                </div>
+                <input type="range" id="temperature" min="0" max="2" step="0.05" value="0.8">
             </div>
-            <input type="range" id="temperature" min="0" max="2" step="0.05" value="0.8">
+            <div class="sg">
+                <div class="sg-header">
+                    <label>Max Tokens</label>
+                    <span class="sg-val" id="tokensValue">500</span>
+                </div>
+                <input type="range" id="maxTokens" min="50" max="1500" step="10" value="500">
+            </div>
+            <div class="sg">
+                <div class="sg-header">
+                    <label>Top P</label>
+                    <span class="sg-val" id="topPValue">0.9</span>
+                </div>
+                <input type="range" id="topP" min="0" max="1" step="0.05" value="0.9">
+            </div>
+            <div class="sg">
+                <div class="sg-header">
+                    <label>Repetition Penalty</label>
+                    <span class="sg-val" id="repPenValue">1.0</span>
+                </div>
+                <input type="range" id="repetitionPenalty" min="1" max="2" step="0.05" value="1.0">
+            </div>
         </div>
 
-        <!-- Max Tokens -->
-        <div class="slider-group">
-            <div class="slider-header">
-                <label>Max Tokens</label>
-                <span class="slider-value" id="tokensValue">500</span>
+        <!-- Advanced params toggle -->
+        <button class="advanced-toggle" id="advancedToggle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            Advanced Parameters
+        </button>
+        <div class="advanced-params" id="advancedParams">
+            <div class="param-grid">
+                <div class="sg">
+                    <div class="sg-header">
+                        <label>Frequency Penalty</label>
+                        <span class="sg-val" id="freqPenValue">0.0</span>
+                    </div>
+                    <input type="range" id="frequencyPenalty" min="0" max="2" step="0.1" value="0">
+                </div>
+                <div class="sg">
+                    <div class="sg-header">
+                        <label>Presence Penalty</label>
+                        <span class="sg-val" id="presPenValue">0.0</span>
+                    </div>
+                    <input type="range" id="presencePenalty" min="0" max="2" step="0.1" value="0">
+                </div>
             </div>
-            <input type="range" id="maxTokens" min="50" max="1500" step="10" value="500">
-        </div>
-
-        <!-- Top P -->
-        <div class="slider-group">
-            <div class="slider-header">
-                <label>Top P</label>
-                <span class="slider-value" id="topPValue">0.9</span>
+            <div class="fg" style="margin-top: 0.5rem;">
+                <label>Seed (for reproducibility, leave empty for random)</label>
+                <input type="text" id="seedInput" placeholder="e.g. 42" style="font-family: 'JetBrains Mono', monospace;">
             </div>
-            <input type="range" id="topP" min="0" max="1" step="0.05" value="0.9">
         </div>
 
         <!-- Generate -->
         <button class="btn-generate" id="generateBtn">
             <div class="spinner"></div>
-            <span class="btn-text">⚡ Generate</span>
+            <span class="btn-text">&#9889; Generate</span>
         </button>
 
         <div class="btn-row">
-            <button class="btn-secondary" id="resetBtn">Reset Defaults</button>
-            <button class="btn-secondary" id="clearHistoryBtn">Clear History</button>
+            <button class="btn-sec" id="resetBtn">Reset Defaults</button>
+            <button class="btn-sec" id="copyConfigBtn">&#128203; Copy Config</button>
+            <button class="btn-sec" id="clearHistoryBtn">Clear History</button>
         </div>
 
         <!-- Status log -->
@@ -427,25 +459,32 @@
     <div class="output-section">
 
         <div class="stats-bar" id="statsBar" style="display: none;">
-            <div class="stat-chip">Model <span class="stat-val" id="statModel">—</span></div>
-            <div class="stat-chip">Latency <span class="stat-val" id="statLatency">—</span></div>
-            <div class="stat-chip">Tokens <span class="stat-val" id="statTokens">—</span></div>
-            <div class="stat-chip">Temp <span class="stat-val" id="statTemp">—</span></div>
-            <div class="stat-chip">TopP <span class="stat-val" id="statTopP">—</span></div>
+            <div class="stat-chip">Model <span class="sv" id="statModel">&#8212;</span></div>
+            <div class="stat-chip">Latency <span class="sv" id="statLatency">&#8212;</span></div>
+            <div class="stat-chip">Tokens <span class="sv" id="statTokens">&#8212;</span></div>
+            <div class="stat-chip">Temp <span class="sv" id="statTemp">&#8212;</span></div>
+            <div class="stat-chip">TopP <span class="sv" id="statTopP">&#8212;</span></div>
+            <div class="stat-chip">RepPen <span class="sv" id="statRepPen">&#8212;</span></div>
         </div>
 
         <!-- Feed Preview -->
         <div class="output-card">
             <div class="output-card-header">
                 <h3>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>
                     </svg>
                     Feed Preview
                 </h3>
+                <button class="copy-btn" id="copyPreviewBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    Copy
+                </button>
             </div>
             <div class="output-card-body" id="previewArea">
-                <div class="output-placeholder">Click ⚡ Generate to create content</div>
+                <div class="output-placeholder">Click &#9889; Generate to create content</div>
             </div>
         </div>
 
@@ -453,14 +492,43 @@
         <div class="output-card">
             <div class="output-card-header">
                 <h3>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
                     </svg>
                     Raw LLM Output
                 </h3>
+                <button class="copy-btn" id="copyRawBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    Copy
+                </button>
             </div>
             <div class="output-card-body mono" id="rawOutput">
                 <div class="output-placeholder">Raw model response (before cleaning)</div>
+            </div>
+        </div>
+
+        <!-- Config Export -->
+        <div class="output-card">
+            <div class="output-card-header">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    Config JSON
+                </h3>
+                <button class="copy-btn" id="copyConfigJsonBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    Copy
+                </button>
+            </div>
+            <div class="output-card-body">
+                <div class="config-json" id="configJson">
+                    <div class="output-placeholder">Configuration will appear here after generation</div>
+                </div>
             </div>
         </div>
 
@@ -468,12 +536,12 @@
         <div class="output-card">
             <div class="output-card-header">
                 <h3>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
                     Generation History
                 </h3>
-                <span style="font-size: 0.75rem; color: var(--text-muted);" id="historyCount">0 runs</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted);" id="historyCount">0 runs</span>
             </div>
             <div class="output-card-body">
                 <div class="history-list" id="historyList">
@@ -485,8 +553,8 @@
 </div>
 
 <script>
-// Word count limits per category (fallback default: 50-120)
-const WORD_LIMITS = {
+// Word count limits per category
+var WORD_LIMITS = {
     'Hooks': [15, 50],
     'History & Society': [80, 150],
     'Science & How Things Work': [80, 150],
@@ -496,50 +564,123 @@ const WORD_LIMITS = {
     'Health & Lifestyle Tips': [60, 120]
 };
 
-const DEFAULT_SYSTEM_MSG = `You are Flux, a content engine that writes sharp, genuinely interesting short-form posts.
-Every post must have a SPECIFIC insight, fact, or observation — never generic statements.
-Write like the smartest person in the room sharing something they just learned. Conversational, precise, surprising.
-NEVER include <think> tags, reasoning, explanations, labels, or quotes. Output ONLY the post content.
-Avoid clickbait patterns like "You won't believe" or "Nobody talks about". Instead, SHOW the interesting thing directly.`;
+var DEFAULT_SYSTEM_MSG = 'You are Flux, a content engine that writes sharp, genuinely interesting short-form posts.\n' +
+    'Every post must have a SPECIFIC insight, fact, or observation \u2014 never generic statements.\n' +
+    'Write like the smartest person in the room sharing something they just learned. Conversational, precise, surprising.\n' +
+    'NEVER include <think> tags, reasoning, explanations, labels, or quotes. Output ONLY the post content.\n' +
+    'Avoid clickbait patterns like "You won\'t believe" or "Nobody talks about". Instead, SHOW the interesting thing directly.';
 
-const DEFAULT_PROMPT = `Write a hook post in 15-50 words. Output ONLY the post.
-It should land like a punch — one specific, surprising observation that makes the reader stop and think.
-Example tone: "The average person mass 365 decisions about food alone every day. Most of them happen before you're even aware you're choosing."
-Be specific. Use a real fact, number, or vivid detail. No generic motivation. No clickbait. Just one sharp thought that sticks.`;
+var DEFAULT_PROMPT = 'Write a hook post in 15-50 words. Output ONLY the post.\n' +
+    'It should land like a punch \u2014 one specific, surprising observation that makes the reader stop and think.\n' +
+    'Example tone: "The average person makes 365 decisions about food alone every day. Most of them happen before you\'re even aware you\'re choosing."\n' +
+    'Be specific. Use a real fact, number, or vivid detail. No generic motivation. No clickbait. Just one sharp thought that sticks.';
 
-let metaConfigs = [];
-let history = [];
+var metaConfigs = [];
+var history = [];
+var lastConfig = null;
 
-// ─── Auth ───
-const _token = localStorage.getItem('flux_session_token');
+// \u2500\u2500\u2500 Auth \u2500\u2500\u2500
+var _token = localStorage.getItem('flux_session_token');
 if (!_token) { window.location.href = '/login.html'; }
-function authFetch(url, options = {}) {
-    options.headers = { ...(options.headers || {}), 'Authorization': 'Bearer ' + _token };
+function authFetch(url, options) {
+    options = options || {};
+    options.headers = Object.assign({}, options.headers || {}, { 'Authorization': 'Bearer ' + _token });
     return fetch(url, options);
 }
 
-// ─── Log ───
+// \u2500\u2500\u2500 Theme \u2500\u2500\u2500
+var savedTheme = localStorage.getItem('flux_theme') || 'light';
+if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+document.getElementById('pgThemeToggle').addEventListener('click', function() {
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('flux_theme', newTheme);
+});
+
+// \u2500\u2500\u2500 Log \u2500\u2500\u2500
 function logStatus(msg, type) {
-    const el = document.getElementById('statusLog');
-    const cls = type === 'ok' ? 'log-ok' : type === 'err' ? 'log-err' : 'log-info';
-    const time = new Date().toLocaleTimeString();
+    var el = document.getElementById('statusLog');
+    var cls = type === 'ok' ? 'log-ok' : type === 'err' ? 'log-err' : 'log-info';
+    var time = new Date().toLocaleTimeString();
     el.innerHTML += '<br><span class="' + cls + '">[' + time + '] ' + msg + '</span>';
     el.scrollTop = el.scrollHeight;
-    console.log('[Playground ' + (type || 'info') + ']', msg);
 }
 
-// ─── Init ───
+// \u2500\u2500\u2500 Copy helpers \u2500\u2500\u2500
+function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+    }).catch(function() {
+        logStatus('Copy failed', 'err');
+    });
+}
+
+// \u2500\u2500\u2500 Build config JSON \u2500\u2500\u2500
+function buildConfig() {
+    var config = {
+        model: document.getElementById('modelSelect').value,
+        category: document.getElementById('categorySelect').value || null,
+        system_message: document.getElementById('systemMessage').value,
+        prompt: document.getElementById('userPrompt').value,
+        temperature: parseFloat(document.getElementById('temperature').value),
+        max_tokens: parseInt(document.getElementById('maxTokens').value),
+        top_p: parseFloat(document.getElementById('topP').value),
+        repetition_penalty: parseFloat(document.getElementById('repetitionPenalty').value),
+        frequency_penalty: parseFloat(document.getElementById('frequencyPenalty').value),
+        presence_penalty: parseFloat(document.getElementById('presencePenalty').value)
+    };
+    var seedVal = document.getElementById('seedInput').value.trim();
+    if (seedVal) config.seed = parseInt(seedVal);
+    return config;
+}
+
+// \u2500\u2500\u2500 Init \u2500\u2500\u2500
 document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('systemMessage').value = DEFAULT_SYSTEM_MSG;
     document.getElementById('userPrompt').value = DEFAULT_PROMPT;
 
+    // Bind all sliders
     bindSlider('temperature', 'tempValue');
     bindSlider('maxTokens', 'tokensValue');
     bindSlider('topP', 'topPValue');
+    bindSlider('repetitionPenalty', 'repPenValue');
+    bindSlider('frequencyPenalty', 'freqPenValue');
+    bindSlider('presencePenalty', 'presPenValue');
 
     document.getElementById('generateBtn').addEventListener('click', generate);
     document.getElementById('resetBtn').addEventListener('click', resetDefaults);
     document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+
+    // Copy Config button (top button bar)
+    document.getElementById('copyConfigBtn').addEventListener('click', function() {
+        var config = buildConfig();
+        copyToClipboard(JSON.stringify(config, null, 2), this);
+    });
+
+    // Copy buttons for output sections
+    document.getElementById('copyPreviewBtn').addEventListener('click', function() {
+        var text = document.getElementById('previewArea').innerText;
+        copyToClipboard(text, this);
+    });
+    document.getElementById('copyRawBtn').addEventListener('click', function() {
+        var text = document.getElementById('rawOutput').innerText;
+        copyToClipboard(text, this);
+    });
+    document.getElementById('copyConfigJsonBtn').addEventListener('click', function() {
+        var text = document.getElementById('configJson').innerText;
+        copyToClipboard(text, this);
+    });
+
+    // Advanced toggle
+    document.getElementById('advancedToggle').addEventListener('click', function() {
+        this.classList.toggle('open');
+        document.getElementById('advancedParams').classList.toggle('open');
+    });
 
     // Load meta configs
     try {
@@ -582,40 +723,36 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!meta) return;
         var mc = meta.meta_config;
 
-        // Build system message
         var wordRange = mc.word_count_range || WORD_LIMITS[cat] || [50, 120];
         var toneGuide = mc.tone_guide || '';
         var sys = DEFAULT_SYSTEM_MSG + '\nTarget length: ' + wordRange[0] + '-' + wordRange[1] + ' words. Write in English.';
-        if (toneGuide) {
-            sys += '\nTone: ' + toneGuide;
-        }
+        if (toneGuide) sys += '\nTone: ' + toneGuide;
         document.getElementById('systemMessage').value = sys;
 
-        // Build quality user prompt
         var vocabKeys = mc.vocabulary_weight ? Object.keys(mc.vocabulary_weight).join(', ') : '';
         var triggers = mc.triggers ? mc.triggers.join(', ') : '';
         var isHooks = (cat === 'Hooks');
 
         var prompt = '';
         if (isHooks) {
-            prompt = "Write a hook post in " + wordRange[0] + "-" + wordRange[1] + " words. Output ONLY the post.\n" +
-                "It should land like a punch — one specific, surprising observation that makes the reader stop and think.\n" +
-                "Use a real fact, statistic, or vivid concrete detail. Be conversational and specific.\n" +
-                "Emotional register: " + triggers + ".\n" +
-                "No clickbait, no generic motivation. Just one sharp thought that lingers.";
+            prompt = 'Write a hook post in ' + wordRange[0] + '-' + wordRange[1] + ' words. Output ONLY the post.\n' +
+                'It should land like a punch \u2014 one specific, surprising observation that makes the reader stop and think.\n' +
+                'Use a real fact, statistic, or vivid concrete detail. Be conversational and specific.\n' +
+                'Emotional register: ' + triggers + '.\n' +
+                'No clickbait, no generic motivation. Just one sharp thought that lingers.';
         } else {
-            prompt = "Write a post about '" + cat + "' in " + wordRange[0] + "-" + wordRange[1] + " words. Output ONLY the post.\n" +
-                "Open with something specific — a fact, a scenario, a named example — not a vague statement.\n" +
-                "Emotional register: " + triggers + ". Pacing: " + mc.pacing + ".\n" +
-                "Vocabulary that fits naturally: " + vocabKeys + ".\n" +
-                "End with a thought that stays with the reader — a question, implication, or reframe.\n" +
-                "Write like you're explaining something fascinating to a smart friend. Be specific, not generic.";
+            prompt = 'Write a post about \'' + cat + '\' in ' + wordRange[0] + '-' + wordRange[1] + ' words. Output ONLY the post.\n' +
+                'Open with something specific \u2014 a fact, a scenario, a named example \u2014 not a vague statement.\n' +
+                'Emotional register: ' + triggers + '. Pacing: ' + mc.pacing + '.\n' +
+                'Vocabulary that fits naturally: ' + vocabKeys + '.\n' +
+                'End with a thought that stays with the reader \u2014 a question, implication, or reframe.\n' +
+                'Write like you\'re explaining something fascinating to a smart friend. Be specific, not generic.';
         }
         document.getElementById('userPrompt').value = prompt;
         logStatus('Loaded preset: ' + cat + ' (' + wordRange[0] + '-' + wordRange[1] + ' words)', 'info');
     });
 
-    // Cmd+Enter / Ctrl+Enter
+    // Keyboard shortcut: Cmd/Ctrl + Enter
     document.addEventListener('keydown', function(e) {
         if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generate();
     });
@@ -629,32 +766,30 @@ function bindSlider(sliderId, valueId) {
     slider.addEventListener('input', function() { display.textContent = slider.value; });
 }
 
-// ─── Generate ───
+// \u2500\u2500\u2500 Generate \u2500\u2500\u2500
 async function generate() {
     var btn = document.getElementById('generateBtn');
     if (btn.disabled) return;
     btn.disabled = true;
     btn.classList.add('loading');
 
-    var model = document.getElementById('modelSelect').value;
-    var systemMsg = document.getElementById('systemMessage').value;
-    var prompt = document.getElementById('userPrompt').value;
-    var temperature = parseFloat(document.getElementById('temperature').value);
-    var maxTokens = parseInt(document.getElementById('maxTokens').value);
-    var topP = parseFloat(document.getElementById('topP').value);
+    var config = buildConfig();
 
     var payload = {
-        model: model,
-        system_message: systemMsg,
-        prompt: prompt,
-        temperature: temperature,
-        max_tokens: maxTokens,
-        top_p: topP
+        model: config.model,
+        system_message: config.system_message,
+        prompt: config.prompt,
+        temperature: config.temperature,
+        max_tokens: config.max_tokens,
+        top_p: config.top_p,
+        repetition_penalty: config.repetition_penalty,
+        frequency_penalty: config.frequency_penalty,
+        presence_penalty: config.presence_penalty
     };
+    if (config.seed != null) payload.seed = config.seed;
 
-    var shortName = model.split('/').pop();
-    logStatus('Generating with ' + shortName + ' (temp=' + temperature + ', tokens=' + maxTokens + ')...', 'info');
-    console.log('[Playground] Request payload:', JSON.stringify(payload, null, 2));
+    var shortName = config.model.split('/').pop();
+    logStatus('Generating with ' + shortName + ' (temp=' + config.temperature + ', tokens=' + config.max_tokens + ')...', 'info');
 
     try {
         var res = await authFetch('/v1/playground/generate', {
@@ -663,25 +798,22 @@ async function generate() {
             body: JSON.stringify(payload)
         });
 
-        console.log('[Playground] HTTP status:', res.status);
-
         if (!res.ok) {
             var errText = await res.text();
             throw new Error('HTTP ' + res.status + ': ' + errText.substring(0, 200));
         }
 
         var data = await res.json();
-        console.log('[Playground] Response:', JSON.stringify(data, null, 2));
 
         if (data.status === 'success') {
             logStatus('Done in ' + data.elapsed_ms + 'ms (' + shortName + ')', 'ok');
-            showResult(data, payload);
+            lastConfig = config;
+            showResult(data, config);
         } else {
             logStatus('Error: ' + (data.error || 'Unknown'), 'err');
             showError(data.error || 'Unknown error');
         }
     } catch (e) {
-        console.error('[Playground] Fetch error:', e);
         logStatus('Request failed: ' + e.message, 'err');
         showError(e.message);
     } finally {
@@ -690,55 +822,60 @@ async function generate() {
     }
 }
 
-function showResult(data, params) {
+function showResult(data, config) {
     // Stats
     document.getElementById('statsBar').style.display = 'flex';
     var shortModel = (data.model || '').split('/').pop();
-    document.getElementById('statModel').textContent = shortModel || '—';
+    document.getElementById('statModel').textContent = shortModel || '\u2014';
     document.getElementById('statLatency').textContent = data.elapsed_ms + 'ms';
-    document.getElementById('statTemp').textContent = params.temperature;
-    document.getElementById('statTopP').textContent = params.top_p;
+    document.getElementById('statTemp').textContent = config.temperature;
+    document.getElementById('statTopP').textContent = config.top_p;
+    document.getElementById('statRepPen').textContent = config.repetition_penalty;
 
     if (data.usage) {
         document.getElementById('statTokens').textContent =
-            (data.usage.prompt_tokens || 0) + ' → ' + (data.usage.completion_tokens || 0);
+            (data.usage.prompt_tokens || 0) + ' \u2192 ' + (data.usage.completion_tokens || 0);
     } else {
-        document.getElementById('statTokens').textContent = '—';
+        document.getElementById('statTokens').textContent = '\u2014';
     }
 
-    // Feed preview
-    var cat = document.getElementById('categorySelect').value || 'General';
+    // Feed preview (no AI Generated tag)
+    var cat = config.category || 'General';
     var modelTag = (data.model || '').split('/').pop();
     document.getElementById('previewArea').innerHTML =
         '<div class="preview-card">' +
             '<div class="cat-badge">' + escapeHtml(cat) + '</div>' +
             '<div class="content-text">' + escapeHtml(data.cleaned) + '</div>' +
-            '<div class="source-badge">' +
-                '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                    '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>' +
-                '</svg>' +
-                ' AI Generated · Playground' +
-                '<span class="model-tag">' + escapeHtml(modelTag) + '</span>' +
-            '</div>' +
+            '<span class="model-tag">' + escapeHtml(modelTag) + '</span>' +
         '</div>';
 
     // Raw output
     document.getElementById('rawOutput').innerHTML = '';
     document.getElementById('rawOutput').textContent = data.raw || '(empty response)';
 
+    // Config JSON with result metadata
+    var fullConfig = Object.assign({}, config);
+    fullConfig._result = {
+        elapsed_ms: data.elapsed_ms,
+        model_used: data.model,
+        usage: data.usage || null,
+        cleaned_preview: (data.cleaned || '').substring(0, 100)
+    };
+    document.getElementById('configJson').textContent = JSON.stringify(fullConfig, null, 2);
+
     // History
-    addToHistory(data, params, cat);
+    addToHistory(data, config, cat);
 }
 
 function showError(msg) {
     document.getElementById('previewArea').innerHTML =
-        '<div style="color: var(--error); padding: 1rem;">❌ Error: ' + escapeHtml(msg) + '</div>';
+        '<div style="color: #ef4444; padding: 1rem;">\u274c Error: ' + escapeHtml(msg) + '</div>';
     document.getElementById('rawOutput').innerHTML = '';
-    document.getElementById('rawOutput').textContent = 'Error — see status log.';
+    document.getElementById('rawOutput').textContent = 'Error \u2014 see status log.';
 }
 
-function addToHistory(data, params, category) {
-    history.unshift({ data: data, params: params, category: category, time: new Date() });
+function addToHistory(data, config, category) {
+    history.unshift({ data: data, config: config, category: category, time: new Date() });
     renderHistory();
 }
 
@@ -758,13 +895,13 @@ function renderHistory() {
                 '<div class="hi-content">' + escapeHtml(h.data.cleaned || '(empty)') + '</div>' +
                 '<div class="hi-meta">' +
                     '<span>' + escapeHtml(h.category) + '</span>' +
-                    '<span>·</span>' +
+                    '<span>\u00b7</span>' +
                     '<span>' + escapeHtml(mShort) + '</span>' +
-                    '<span>·</span>' +
+                    '<span>\u00b7</span>' +
                     '<span>' + h.data.elapsed_ms + 'ms</span>' +
-                    '<span>·</span>' +
-                    '<span>temp=' + h.params.temperature + '</span>' +
-                    '<span>·</span>' +
+                    '<span>\u00b7</span>' +
+                    '<span>temp=' + h.config.temperature + '</span>' +
+                    '<span>\u00b7</span>' +
                     '<span>' + h.time.toLocaleTimeString() + '</span>' +
                 '</div>' +
             '</div>';
@@ -774,20 +911,29 @@ function renderHistory() {
 
 function reloadHistory(index) {
     var h = history[index];
-    document.getElementById('modelSelect').value = h.params.model || 'zai-org/GLM-5:novita';
-    document.getElementById('temperature').value = h.params.temperature;
-    document.getElementById('tempValue').textContent = h.params.temperature;
-    document.getElementById('maxTokens').value = h.params.max_tokens;
-    document.getElementById('tokensValue').textContent = h.params.max_tokens;
-    document.getElementById('topP').value = h.params.top_p;
-    document.getElementById('topPValue').textContent = h.params.top_p;
-    document.getElementById('systemMessage').value = h.params.system_message;
-    document.getElementById('userPrompt').value = h.params.prompt;
-    showResult(h.data, h.params);
+    var c = h.config;
+    document.getElementById('modelSelect').value = c.model;
+    document.getElementById('temperature').value = c.temperature;
+    document.getElementById('tempValue').textContent = c.temperature;
+    document.getElementById('maxTokens').value = c.max_tokens;
+    document.getElementById('tokensValue').textContent = c.max_tokens;
+    document.getElementById('topP').value = c.top_p;
+    document.getElementById('topPValue').textContent = c.top_p;
+    document.getElementById('repetitionPenalty').value = c.repetition_penalty || 1.0;
+    document.getElementById('repPenValue').textContent = c.repetition_penalty || 1.0;
+    document.getElementById('frequencyPenalty').value = c.frequency_penalty || 0;
+    document.getElementById('freqPenValue').textContent = c.frequency_penalty || 0;
+    document.getElementById('presencePenalty').value = c.presence_penalty || 0;
+    document.getElementById('presPenValue').textContent = c.presence_penalty || 0;
+    document.getElementById('seedInput').value = c.seed != null ? c.seed : '';
+    document.getElementById('systemMessage').value = c.system_message;
+    document.getElementById('userPrompt').value = c.prompt;
+    if (c.category) document.getElementById('categorySelect').value = c.category;
+    showResult(h.data, c);
 }
 
 function resetDefaults() {
-    document.getElementById('modelSelect').value = 'zai-org/GLM-5:novita';
+    document.getElementById('modelSelect').value = 'meta-llama/Llama-3.3-70B-Instruct';
     document.getElementById('systemMessage').value = DEFAULT_SYSTEM_MSG;
     document.getElementById('userPrompt').value = DEFAULT_PROMPT;
     document.getElementById('temperature').value = 0.8;
@@ -796,6 +942,13 @@ function resetDefaults() {
     document.getElementById('tokensValue').textContent = '500';
     document.getElementById('topP').value = 0.9;
     document.getElementById('topPValue').textContent = '0.9';
+    document.getElementById('repetitionPenalty').value = 1.0;
+    document.getElementById('repPenValue').textContent = '1.0';
+    document.getElementById('frequencyPenalty').value = 0;
+    document.getElementById('freqPenValue').textContent = '0';
+    document.getElementById('presencePenalty').value = 0;
+    document.getElementById('presPenValue').textContent = '0';
+    document.getElementById('seedInput').value = '';
     document.getElementById('categorySelect').value = '';
     logStatus('Reset to defaults', 'info');
 }

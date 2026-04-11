@@ -75,6 +75,11 @@ public class PlaygroundController {
         int maxTokens = ((Number) request.getOrDefault("max_tokens", 300)).intValue();
         double topP = ((Number) request.getOrDefault("top_p", 0.9)).doubleValue();
         String model = (String) request.getOrDefault("model", huggingFaceModel);
+        double frequencyPenalty = ((Number) request.getOrDefault("frequency_penalty", 0.0)).doubleValue();
+        double presencePenalty = ((Number) request.getOrDefault("presence_penalty", 0.0)).doubleValue();
+        double repetitionPenalty = ((Number) request.getOrDefault("repetition_penalty", 1.0)).doubleValue();
+        Object seedObj = request.get("seed");
+        Integer seed = (seedObj != null) ? ((Number) seedObj).intValue() : null;
 
         Map<String, Object> result = new LinkedHashMap<>();
         long start = System.currentTimeMillis();
@@ -94,6 +99,10 @@ public class PlaygroundController {
             requestBody.put("temperature", temperature);
             requestBody.put("top_p", topP);
             requestBody.put("stream", false);
+            if (frequencyPenalty != 0.0) requestBody.put("frequency_penalty", frequencyPenalty);
+            if (presencePenalty != 0.0) requestBody.put("presence_penalty", presencePenalty);
+            if (repetitionPenalty != 1.0) requestBody.put("repetition_penalty", repetitionPenalty);
+            if (seed != null) requestBody.put("seed", seed);
 
             WebClient client = WebClient.builder()
                     .baseUrl(huggingFaceBaseUrl)
@@ -134,7 +143,10 @@ public class PlaygroundController {
             result.put("parameters", Map.of(
                 "temperature", temperature,
                 "max_tokens", maxTokens,
-                "top_p", topP
+                "top_p", topP,
+                "frequency_penalty", frequencyPenalty,
+                "presence_penalty", presencePenalty,
+                "repetition_penalty", repetitionPenalty
             ));
             result.put("usage", responseMap.get("usage"));
 

@@ -20,6 +20,9 @@ public class InterestProfileService {
     private static final int RECALC_INTERVAL = 5;
     /** Recency weight: interactions within the last N hours are weighted 2x. */
     private static final long RECENCY_HOURS = 24;
+    /** Hooks is a cross-cutting content type that all users should receive by default. */
+    private static final String HOOKS_CATEGORY = "Hooks";
+    private static final double HOOKS_DEFAULT_SCORE = 0.5;
 
     private final InterestProfileRepository profileRepository;
     private final InteractionService interactionService;
@@ -80,6 +83,7 @@ public class InterestProfileService {
                 .orElse(new InterestProfile(userId));
 
         if (interactions.isEmpty()) {
+            ensureHooksInterest(profile);
             profileRepository.save(profile);
             return profile;
         }
@@ -170,6 +174,9 @@ public class InterestProfileService {
         }
 
         profile.setCategoryScores(normalized);
+
+        // Ensure Hooks is always present with at least a baseline score
+        ensureHooksInterest(profile);
         profile.setCategoryLikes(categoryLikes);
         profile.setCategorySkips(categorySkips);
         profile.setCategoryDwellMs(categoryDwellMs);
@@ -236,6 +243,25 @@ public class InterestProfileService {
     }
 
     // ──────────────────────────────────────────────
+    // Hooks default interest
+    // ──────────────────────────────────────────────
+
+    /**
+     * Ensure the "Hooks" category always has at least a baseline score.
+     * Hooks is a cross-cutting content type (short, punchy attention-grabbers)
+     * that all users should receive regardless of their topic selections.
+     */
+    private void ensureHooksInterest(InterestProfile profile) {
+        Map<String, Double> scores = profile.getCategoryScores();
+        if (scores == null) {
+            scores = new HashMap<>();
+            profile.setCategoryScores(scores);
+        }
+        scores.putIfAbsent(HOOKS_CATEGORY, HOOKS_DEFAULT_SCORE);
+        // If user has interacted with hooks but score dropped below baseline, keep their score
+    }
+
+    // ──────────────────────────────────────────────
     // Topic → Category mapping
     // ──────────────────────────────────────────────
 
@@ -277,6 +303,10 @@ public class InterestProfileService {
         }
 
         profile.setCategoryScores(scores);
+
+        // Ensure Hooks is always present with at least a baseline score
+        ensureHooksInterest(profile);
+
         profile.setLastUpdated(Instant.now());
         profileRepository.save(profile);
         return profile;
