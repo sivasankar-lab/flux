@@ -16,16 +16,38 @@ import java.util.Map;
  */
 public class DatabaseUrlEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
+    // Railway / Render / Heroku may use different env var names
+    private static final String[] DATABASE_URL_KEYS = {
+            "DATABASE_URL",
+            "DATABASE_PRIVATE_URL",
+            "DATABASE_PUBLIC_URL",
+            "RAILWAY_DATABASE_URL",
+    };
+
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        String databaseUrl = environment.getProperty("DATABASE_URL");
-        if (databaseUrl == null || databaseUrl.isEmpty()) {
-            databaseUrl = System.getenv("DATABASE_URL");
+        System.out.println("[DatabaseUrlPostProcessor] Running …");
+
+        String databaseUrl = null;
+        String foundKey = null;
+
+        for (String key : DATABASE_URL_KEYS) {
+            databaseUrl = environment.getProperty(key);
+            if (databaseUrl == null || databaseUrl.isEmpty()) {
+                databaseUrl = System.getenv(key);
+            }
+            if (databaseUrl != null && !databaseUrl.isEmpty()) {
+                foundKey = key;
+                break;
+            }
         }
 
         if (databaseUrl == null || databaseUrl.isEmpty()) {
-            return; // No DATABASE_URL — let spring.datasource.* properties handle it
+            System.out.println("[DatabaseUrlPostProcessor] No DATABASE_URL (or variants) found – falling back to spring.datasource.* properties");
+            return;
         }
+
+        System.out.println("[DatabaseUrlPostProcessor] Found " + foundKey);
 
         try {
             // Normalise: postgres:// → postgresql://
