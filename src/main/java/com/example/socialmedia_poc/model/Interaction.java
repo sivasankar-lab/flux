@@ -44,7 +44,7 @@ public class Interaction {
     private InteractionMetaData metaData;
 
     public enum InteractionType {
-        VIEW, LIKE, SKIP, BOOKMARK, LONG_READ
+        VIEW, LIKE, SKIP, BOOKMARK, LONG_READ, DEEP_DIVE
     }
 
     public Interaction() {

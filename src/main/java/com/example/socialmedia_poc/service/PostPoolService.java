@@ -207,6 +207,7 @@ public class PostPoolService {
                     p.setLikeCount(p.getLikeCount() + 1);
                     break;
                 case LONG_READ:
+                case DEEP_DIVE:
                     p.setLongReadCount(p.getLongReadCount() + 1);
                     break;
                 case SKIP:

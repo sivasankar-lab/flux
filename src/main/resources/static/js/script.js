@@ -357,11 +357,21 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `
             <div class="card-header">
                 <span class="category-badge" data-cat="${escapeHtmlCard(catName)}">${escapeHtmlCard(catName)}</span>
-                <button class="like-btn" data-seed-id="${seedData.seedId}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                </button>
+                <div class="card-actions">
+                    <button class="deepdive-btn" data-seed-id="${seedData.seedId}" title="Deep dive into this topic">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            <line x1="11" y1="8" x2="11" y2="14"/>
+                            <line x1="8" y1="11" x2="14" y2="11"/>
+                        </svg>
+                    </button>
+                    <button class="like-btn" data-seed-id="${seedData.seedId}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="card-body">${escapeHtmlCard(fullText)}</div>
             <div class="card-footer">
@@ -390,10 +400,83 @@ document.addEventListener('DOMContentLoaded', () => {
                 recordInteraction(seedData.seedId, seedData.category, 'LIKE');
             }
         });
+
+        // Deep Dive button
+        const deepDiveBtn = card.querySelector('.deepdive-btn');
+        deepDiveBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playTapSound();
+            showDeepDiveConfirmation(seedData);
+        });
         
         trackDwellTime(card, seedData);
         return card;
     };
+
+    // ══════════════════════════════════
+    // Deep Dive Confirmation
+    // ══════════════════════════════════
+    function showDeepDiveConfirmation(seedData) {
+        // Remove existing modal if any
+        const existing = document.querySelector('.deepdive-modal-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'deepdive-modal-overlay';
+        
+        const catName = seedData.category || 'General';
+        const preview = (seedData.content || '').substring(0, 120) + (seedData.content && seedData.content.length > 120 ? '...' : '');
+
+        overlay.innerHTML = `
+            <div class="deepdive-modal">
+                <div class="deepdive-modal-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <line x1="11" y1="8" x2="11" y2="14"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                </div>
+                <h3 class="deepdive-modal-title">Deep Dive</h3>
+                <p class="deepdive-modal-text">Explore this <strong>${escapeHtmlCard(catName)}</strong> topic in depth with AI-researched analysis, key points, and source links.</p>
+                <p class="deepdive-modal-preview">"${escapeHtmlCard(preview)}"</p>
+                <div class="deepdive-modal-actions">
+                    <button class="deepdive-cancel-btn">Cancel</button>
+                    <button class="deepdive-confirm-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        Explore
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('visible'));
+
+        // Cancel
+        overlay.querySelector('.deepdive-cancel-btn').addEventListener('click', () => {
+            overlay.classList.remove('visible');
+            setTimeout(() => overlay.remove(), 300);
+        });
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('visible');
+                setTimeout(() => overlay.remove(), 300);
+            }
+        });
+
+        // Confirm — navigate to deep dive page
+        overlay.querySelector('.deepdive-confirm-btn').addEventListener('click', () => {
+            const params = new URLSearchParams({
+                postId: seedData.seedId,
+                category: catName
+            });
+            window.location.href = `/deepdive.html?${params.toString()}`;
+        });
+    }
 
     // ══════════════════════════════════
     // Rendering

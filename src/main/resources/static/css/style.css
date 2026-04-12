@@ -622,6 +622,13 @@ body::after {
     background: var(--badge-bg);
 }
 
+.card-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-left: auto;
+    align-items: center;
+}
+
 .like-btn {
     width: 34px;
     height: 34px;
@@ -634,7 +641,27 @@ body::after {
     cursor: pointer;
     transition: all 0.25s ease;
     color: var(--text-muted);
-    margin-left: auto;
+}
+
+.deepdive-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    color: var(--text-muted);
+}
+
+.deepdive-btn:hover {
+    background: rgba(5, 150, 105, 0.1);
+    border-color: #059669;
+    color: #059669;
+    transform: scale(1.1);
 }
 
 .like-btn:hover {
@@ -1131,4 +1158,131 @@ body::after {
 
 .animate-fadeIn { animation: fadeIn 0.4s ease; }
 .animate-slideUp { animation: slideUp 0.5s ease; }
+
+/* ══════════════════════════════════
+   Deep Dive Confirmation Modal
+   ══════════════════════════════════ */
+
+.deepdive-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 1rem;
+}
+
+.deepdive-modal-overlay.visible {
+    opacity: 1;
+}
+
+.deepdive-modal {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+    transform: scale(0.92) translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.deepdive-modal-overlay.visible .deepdive-modal {
+    transform: scale(1) translateY(0);
+}
+
+.deepdive-modal-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 150, 105, 0.1);
+    border-radius: 16px;
+    color: #059669;
+}
+
+[data-theme="dark"] .deepdive-modal-icon {
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+}
+
+.deepdive-modal-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.deepdive-modal-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 0.75rem;
+}
+
+.deepdive-modal-preview {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+    max-height: 4.5em;
+    overflow: hidden;
+}
+
+.deepdive-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.deepdive-cancel-btn {
+    padding: 0.65rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.88rem;
+}
+
+.deepdive-cancel-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--text-muted);
+}
+
+.deepdive-confirm-btn {
+    padding: 0.65rem 1.5rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.88rem;
+}
+
+.deepdive-confirm-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(5, 150, 105, 0.35);
+}
 .animate-scaleIn { animation: scaleIn 0.3s ease; }

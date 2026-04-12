@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Dive — Flux</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .dd-container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+            min-height: 100vh;
+        }
+
+        /* Top bar */
+        .dd-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .dd-back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .dd-back-btn:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        /* Loading state */
+        .dd-loading {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        .dd-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .dd-loading-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+        .dd-loading-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        /* Error */
+        .dd-error {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+        }
+        .dd-error-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Hero section */
+        .dd-hero {
+            margin-bottom: 2rem;
+        }
+        .dd-category-badge {
+            display: inline-block;
+            padding: 0.35rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #fff;
+            margin-bottom: 0.75rem;
+        }
+        .dd-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Original quote */
+        .dd-original {
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent-primary);
+            padding: 1rem 1.25rem;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            line-height: 1.6;
+        }
+        .dd-original-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-style: normal;
+            margin-bottom: 0.4rem;
+        }
+
+        /* Content body */
+        .dd-content {
+            font-size: 1.05rem;
+            line-height: 1.85;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+        }
+        .dd-content p { margin-bottom: 1rem; }
+        .dd-content strong { font-weight: 600; }
+        .dd-content em { color: var(--text-secondary); }
+
+        /* Key Points */
+        .dd-keypoints {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .dd-section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .dd-section-icon {
+            font-size: 1.2rem;
+        }
+        .dd-keypoints-list {
+            list-style: none;
+            padding: 0;
+        }
+        .dd-keypoints-list li {
+            position: relative;
+            padding: 0.6rem 0 0.6rem 1.5rem;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+        .dd-keypoints-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 1rem;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+        }
+        .dd-keypoints-list li + li {
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Sources */
+        .dd-sources {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .dd-source-card {
+            display: block;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 0.6rem;
+        }
+        .dd-source-card:last-child { margin-bottom: 0; }
+        .dd-source-card:hover {
+            background: var(--accent-soft);
+            transform: translateX(4px);
+        }
+        .dd-source-title {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--accent-primary);
+            margin-bottom: 0.2rem;
+        }
+        .dd-source-url {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+        .dd-source-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-top: 0.3rem;
+            line-height: 1.4;
+        }
+        .dd-no-sources {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 640px) {
+            .dd-container { padding: 1rem 1rem 3rem; }
+            .dd-title { font-size: 1.5rem; }
+            .dd-content { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dd-container">
+        <!-- Top bar -->
+        <div class="dd-topbar">
+            <a href="/" class="dd-back-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Back to Feed
+            </a>
+            <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                <span class="icon-sun">&#9728;</span>
+                <span class="icon-moon">&#9790;</span>
+            </button>
+        </div>
+
+        <!-- Main content area (filled by JS) -->
+        <div id="deepDiveContent">
+            <div class="dd-loading">
+                <div class="dd-loading-spinner"></div>
+                <div class="dd-loading-text">Generating deep dive...</div>
+                <div class="dd-loading-sub">Researching sources and building analysis</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // ── Auth check ──
+        const sessionToken = localStorage.getItem('flux_session_token');
+        const userId = localStorage.getItem('flux_user_id');
+        if (!sessionToken || !userId) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // ── Theme ──
+        const savedTheme = localStorage.getItem('flux_theme') || 'light';
+        if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('flux_theme', newTheme);
+            });
+        }
+
+        // ── Parse URL params ──
+        const params = new URLSearchParams(window.location.search);
+        const postId = params.get('postId');
+        const category = params.get('category') || 'General';
+
+        if (!postId) {
+            showError('No post ID provided.');
+            return;
+        }
+
+        // ── Category colors ──
+        const catColors = {
+            'history': '#d97706', 'science': '#059669', 'psychology': '#db2777',
+            'technology': '#2563eb', 'philosophy': '#7c3aed', 'health': '#dc2626'
+        };
+
+        function getCatColor(cat) {
+            const lower = (cat || '').toLowerCase();
+            for (const [key, color] of Object.entries(catColors)) {
+                if (lower.includes(key)) return color;
+            }
+            return '#6b7280';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function showError(msg) {
+            document.getElementById('deepDiveContent').innerHTML = `
+                <div class="dd-error">
+                    <div class="dd-error-icon">&#9888;</div>
+                    <p>${escapeHtml(msg)}</p>
+                    <br>
+                    <a href="/" class="dd-back-btn" style="display:inline-flex;">Back to Feed</a>
+                </div>
+            `;
+        }
+
+        // ── Fetch deep dive ──
+        async function loadDeepDive() {
+            try {
+                const response = await fetch(`/v1/deepdive/${encodeURIComponent(postId)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionToken
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error || `Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                renderDeepDive(data);
+            } catch (e) {
+                console.error('Deep dive failed:', e);
+                showError('Failed to generate deep dive. ' + (e.message || 'Please try again.'));
+            }
+        }
+
+        function renderMarkdown(text) {
+            if (!text) return '';
+            // Simple markdown: **bold**, *italic*, paragraphs
+            return text
+                .split('\n\n')
+                .map(p => p.trim())
+                .filter(p => p.length > 0)
+                .map(p => {
+                    let html = escapeHtml(p);
+                    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+                    return `<p>${html}</p>`;
+                })
+                .join('');
+        }
+
+        function renderDeepDive(data) {
+            const title = data.title || 'Deep Dive: ' + category;
+            const content = data.content || 'No detailed content available.';
+            const keyPoints = data.key_points || [];
+            const sources = data.sources || [];
+            const originalContent = data.original_content || '';
+            const catColor = getCatColor(data.category || category);
+
+            document.title = title + ' — Flux Deep Dive';
+
+            let keyPointsHtml = '';
+            if (keyPoints.length > 0) {
+                keyPointsHtml = `
+                    <div class="dd-keypoints">
+                        <div class="dd-section-title">
+                            <span class="dd-section-icon">&#128161;</span> Key Points
+                        </div>
+                        <ul class="dd-keypoints-list">
+                            ${keyPoints.map(p => `<li>${escapeHtml(p)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            let sourcesHtml = '';
+            if (sources.length > 0) {
+                const sourceCards = sources.map(s => {
+                    const url = s.url || '#';
+                    const title = s.title || url;
+                    const desc = s.description || '';
+                    return `
+                        <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="dd-source-card">
+                            <div class="dd-source-title">${escapeHtml(title)}</div>
+                            <div class="dd-source-url">${escapeHtml(url)}</div>
+                            ${desc ? `<div class="dd-source-desc">${escapeHtml(desc)}</div>` : ''}
+                        </a>
+                    `;
+                }).join('');
+                sourcesHtml = `
+                    <div class="dd-sources">
+                        <div class="dd-section-title">
+                            <span class="dd-section-icon">&#128279;</span> Sources & References
+                        </div>
+                        ${sourceCards}
+                    </div>
+                `;
+            } else {
+                sourcesHtml = `
+                    <div class="dd-sources">
+                        <div class="dd-section-title">
+                            <span class="dd-section-icon">&#128279;</span> Sources & References
+                        </div>
+                        <p class="dd-no-sources">No external sources were provided for this deep dive.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('deepDiveContent').innerHTML = `
+                <div class="dd-hero animate-slideUp">
+                    <span class="dd-category-badge" style="background: ${catColor};">${escapeHtml(data.category || category)}</span>
+                    <h1 class="dd-title">${escapeHtml(title)}</h1>
+                </div>
+
+                ${originalContent ? `
+                    <div class="dd-original animate-slideUp" style="animation-delay: 0.1s;">
+                        <div class="dd-original-label">Original Post</div>
+                        ${escapeHtml(originalContent)}
+                    </div>
+                ` : ''}
+
+                <div class="dd-content animate-slideUp" style="animation-delay: 0.15s;">
+                    ${renderMarkdown(content)}
+                </div>
+
+                <div class="animate-slideUp" style="animation-delay: 0.2s;">
+                    ${keyPointsHtml}
+                </div>
+
+                <div class="animate-slideUp" style="animation-delay: 0.25s;">
+                    ${sourcesHtml}
+                </div>
+            `;
+        }
+
+        loadDeepDive();
+    });
+    </script>
+</body>
+</html>

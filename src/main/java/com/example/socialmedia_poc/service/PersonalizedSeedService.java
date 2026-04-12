@@ -21,10 +21,18 @@ public class PersonalizedSeedService {
     private static final Logger log = LoggerFactory.getLogger(PersonalizedSeedService.class);
 
     private static final String BASE_SYSTEM_MESSAGE =
-            "You are Flux, a generative social media platform that creates highly engaging, " +
-            "culturally relevant short-form content. " +
+            "You are Flux, a generative social media platform that creates short-form content. " +
+            "Write like a sharp, knowledgeable human — NOT like an AI assistant. " +
             "NEVER include <think> tags, reasoning, or explanations. Output ONLY the post content. " +
-            "Keep posts under 50 words.";
+            "ABSOLUTE BANS — never use these words or phrases: " +
+            "\"delve\", \"tapestry\", \"leverage\", \"paradigm shift\", \"it's worth noting\", " +
+            "\"in a world where\", \"at the end of the day\", \"game-changer\", \"deep dive\", " +
+            "\"unpack\", \"robust\", \"nuanced\", \"pivotal\", \"synergy\", \"holistic\", " +
+            "\"groundbreaking\", \"transformative\", \"revolutionize\", \"landscape\", " +
+            "\"navigate\", \"realm\", \"foster\", \"embark\", \"shed light on\", " +
+            "\"it goes without saying\", \"needless to say\", \"a testament to\". " +
+            "Instead: be direct, use concrete language, name specific things. " +
+            "Keep posts under 120 words.";
 
     private static String buildSystemMessage(MetaConfig config) {
         StringBuilder sb = new StringBuilder(BASE_SYSTEM_MESSAGE);
@@ -168,6 +176,8 @@ public class PersonalizedSeedService {
 
         // Quality + variety
         prompt.append("\nBe SPECIFIC — use a real fact, name, number, or vivid detail. No generic filler. ");
+        prompt.append("Write like a human expert sharing something fascinating, NOT like an AI generating content. ");
+        prompt.append("No clichés, no motivational poster language, no buzzwords. ");
         prompt.append("ANGLE: ").append(ANGLE_VARIATIONS[angleIndex % ANGLE_VARIATIONS.length]);
         angleIndex++;
 
@@ -180,8 +190,8 @@ public class PersonalizedSeedService {
         content = content.replaceAll("<[^>]+>", "");
         content = content.trim();
         String[] words = content.split("\\s+");
-        if (words.length > 55) {
-            content = String.join(" ", java.util.Arrays.copyOfRange(words, 0, 50)) + "...";
+        if (words.length > 130) {
+            content = String.join(" ", java.util.Arrays.copyOfRange(words, 0, 120)) + "...";
         }
         return content;
     }
