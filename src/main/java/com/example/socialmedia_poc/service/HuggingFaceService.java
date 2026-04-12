@@ -48,6 +48,11 @@ public class HuggingFaceService implements LLMService {
 
     @Override
     public String generateContent(String systemMessage, String prompt) throws Exception {
+        return generateContent(systemMessage, prompt, 300);
+    }
+
+    @Override
+    public String generateContent(String systemMessage, String prompt, int maxTokens) throws Exception {
         List<Map<String, String>> messages = new ArrayList<>();
 
         if (systemMessage != null && !systemMessage.isEmpty()) {
@@ -58,7 +63,7 @@ public class HuggingFaceService implements LLMService {
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("model", model);
         requestBody.put("messages", messages);
-        requestBody.put("max_tokens", 300);
+        requestBody.put("max_tokens", maxTokens);
         requestBody.put("temperature", 0.8);
         requestBody.put("stream", false);
 

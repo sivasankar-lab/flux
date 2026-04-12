@@ -69,7 +69,7 @@ public class DeepDiveController {
             String prompt = buildDeepDivePrompt(postContent, category);
 
             log.info("[DeepDive] Generating for post '{}' (category: {}) via {}", postId, category, llmService.getProviderName());
-            String rawResponse = llmService.generateContent(systemMessage, prompt);
+            String rawResponse = llmService.generateContent(systemMessage, prompt, 2000);
 
             // Parse structured JSON from LLM response
             Map<String, Object> result = parseDeepDiveResponse(rawResponse, postContent, category);
@@ -124,14 +124,99 @@ public class DeepDiveController {
 
             return mapper.readValue(json, new TypeReference<Map<String, Object>>() {});
         } catch (Exception e) {
-            log.warn("[DeepDive] Failed to parse JSON response, building fallback. Error: {}", e.getMessage());
-            // Fallback: wrap raw text as content
-            Map<String, Object> fallback = new LinkedHashMap<>();
-            fallback.put("title", "Deep Dive: " + category);
-            fallback.put("content", raw.replaceAll("(?s)<think>.*?</think>", "").replaceAll("<[^>]+>", "").trim());
-            fallback.put("key_points", List.of("Expanded analysis of the original post"));
-            fallback.put("sources", List.of());
-            return fallback;
+            log.warn("[DeepDive] Failed to parse JSON, attempting field extraction. Error: {}", e.getMessage());
+            // Try to extract individual fields from truncated JSON
+            return extractFieldsFromPartialJson(raw, category);
         }
+    }
+
+    private Map<String, Object> extractFieldsFromPartialJson(String raw, String category) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        String cleaned = raw.replaceAll("(?s)<think>.*?</think>", "").replaceAll("^```(?:json)?\\s*", "").trim();
+
+        // Try to extract title
+        String title = extractJsonStringField(cleaned, "title");
+        result.put("title", title != null ? title : "Deep Dive: " + category);
+
+        // Try to extract content
+        String content = extractJsonStringField(cleaned, "content");
+        if (content != null) {
+            // Clean up trailing incomplete sentence if truncated
+            if (!content.endsWith(".") && !content.endsWith("!") && !content.endsWith("?")) {
+                int lastSentEnd = Math.max(content.lastIndexOf("."), Math.max(content.lastIndexOf("!"), content.lastIndexOf("?")));
+                if (lastSentEnd > content.length() / 2) {
+                    content = content.substring(0, lastSentEnd + 1);
+                }
+            }
+            result.put("content", content);
+        } else {
+            // Final fallback: strip JSON syntax and show raw text
+            String fallbackText = cleaned
+                    .replaceAll("\\{\\s*\"[^\"]+\"\\s*:\\s*\"", "")
+                    .replaceAll("<[^>]+>", "")
+                    .replaceAll("\\\\n", "\n")
+                    .trim();
+            result.put("content", fallbackText);
+        }
+
+        // Try to extract key_points
+        try {
+            int kpStart = cleaned.indexOf("\"key_points\"");
+            if (kpStart > 0) {
+                int arrStart = cleaned.indexOf("[", kpStart);
+                int arrEnd = cleaned.indexOf("]", arrStart);
+                if (arrStart > 0 && arrEnd > arrStart) {
+                    String arrStr = cleaned.substring(arrStart, arrEnd + 1);
+                    ObjectMapper mapper = new ObjectMapper();
+                    result.put("key_points", mapper.readValue(arrStr, List.class));
+                }
+            }
+        } catch (Exception ignored) {}
+        result.putIfAbsent("key_points", List.of("Expanded analysis of the original post"));
+
+        // Try to extract sources
+        try {
+            int srcStart = cleaned.indexOf("\"sources\"");
+            if (srcStart > 0) {
+                int arrStart = cleaned.indexOf("[", srcStart);
+                int arrEnd = cleaned.lastIndexOf("]");
+                if (arrStart > 0 && arrEnd > arrStart) {
+                    String arrStr = cleaned.substring(arrStart, arrEnd + 1);
+                    ObjectMapper mapper = new ObjectMapper();
+                    result.put("sources", mapper.readValue(arrStr, List.class));
+                }
+            }
+        } catch (Exception ignored) {}
+        result.putIfAbsent("sources", List.of());
+
+        return result;
+    }
+
+    /** Extract a string field value from possibly-truncated JSON. */
+    private String extractJsonStringField(String json, String fieldName) {
+        String pattern = "\"" + fieldName + "\"\\s*:\\s*\"";
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(json);
+        if (!m.find()) return null;
+
+        int valueStart = m.end();
+        StringBuilder sb = new StringBuilder();
+        boolean escaped = false;
+        for (int i = valueStart; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (escaped) {
+                if (c == 'n') sb.append('\n');
+                else if (c == 't') sb.append('\t');
+                else sb.append(c);
+                escaped = false;
+            } else if (c == '\\') {
+                escaped = true;
+            } else if (c == '"') {
+                return sb.toString();
+            } else {
+                sb.append(c);
+            }
+        }
+        // Reached end without closing quote — truncated. Return what we have.
+        return sb.length() > 0 ? sb.toString() : null;
     }
 }
