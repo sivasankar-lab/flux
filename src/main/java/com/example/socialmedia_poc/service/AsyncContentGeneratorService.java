@@ -158,7 +158,23 @@ public class AsyncContentGeneratorService {
             Map<String, Object> stats = poolService.getPoolStats();
             @SuppressWarnings("unchecked")
             Map<String, Long> categories = (Map<String, Long>) stats.get("categories");
-            if (categories == null || categories.isEmpty()) return;
+
+            // If pool is completely empty, re-seed from .st files and enqueue generation for all known categories
+            if (categories == null || categories.isEmpty()) {
+                log.info("[AsyncGen] Pool is completely empty — re-seeding and generating for all categories");
+                poolService.reseedIfEmpty();
+                // Enqueue generation for standard categories so the pool fills up
+                Map<String, Integer> allCategories = new LinkedHashMap<>();
+                allCategories.put("Hooks", 3);
+                allCategories.put("History & Society", 3);
+                allCategories.put("Science & How Things Work", 3);
+                allCategories.put("Psychology & Human Behavior", 3);
+                allCategories.put("Technology & Future", 3);
+                allCategories.put("Philosophy & Life Questions", 3);
+                allCategories.put("Health & Lifestyle Tips", 3);
+                enqueueBulk(SYSTEM_USER, allCategories, "POOL_EMPTY");
+                return;
+            }
 
             Map<String, Integer> deficits = new LinkedHashMap<>();
             for (Map.Entry<String, Long> entry : categories.entrySet()) {

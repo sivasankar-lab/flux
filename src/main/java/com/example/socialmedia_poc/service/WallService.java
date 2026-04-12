@@ -42,10 +42,23 @@ public class WallService {
         List<WallPost> existing = wallPostRepository.findByUserIdOrderByBatchAscIdAsc(userId);
         if (!existing.isEmpty()) return existing;
 
+        // Ensure pool has content (re-seed from .st files if emptied)
+        poolService.reseedIfEmpty();
+
         InterestProfile profile = profileService.getProfile(userId);
         Set<String> seenPostIds = Collections.emptySet();
 
         List<PoolPost> recommended = poolService.recommend(profile, seenPostIds, 10);
+
+        // If pool is still empty after re-seed, trigger async LLM generation
+        if (recommended.isEmpty()) {
+            String topCategory = profile.getCategoryScores().entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse("General");
+            asyncContentGenerator.enqueue(userId, topCategory, 10, "EMPTY_POOL_INIT");
+            return Collections.emptyList();
+        }
 
         List<WallPost> initialPosts = recommended.stream()
                 .map(p -> p.toWallPost(1, userId))

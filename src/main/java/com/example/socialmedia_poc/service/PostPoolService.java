@@ -60,6 +60,28 @@ public class PostPoolService {
         }
     }
 
+    /**
+     * Re-seed the pool from .st files if empty. Can be called at any time.
+     * Returns true if seeds were loaded (i.e. pool was empty and now has content).
+     */
+    @Transactional
+    public boolean reseedIfEmpty() {
+        long count = poolPostRepository.count();
+        if (count > 0) return false;
+
+        try {
+            List<PoolPost> seeded = loadAllSeedFiles();
+            if (!seeded.isEmpty()) {
+                poolPostRepository.saveAll(seeded);
+                log.info("[Pool] Re-seeded pool with {} seed posts", seeded.size());
+                return true;
+            }
+        } catch (Exception e) {
+            log.error("[Pool] Re-seed failed: {}", e.getMessage());
+        }
+        return false;
+    }
+
     public List<PoolPost> recommend(InterestProfile profile, Set<String> seenPostIds, int count) {
         List<PoolPost> pool;
         if (seenPostIds != null && !seenPostIds.isEmpty()) {
