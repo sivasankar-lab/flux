@@ -28,6 +28,8 @@ public class WallPost {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    private String caption;
+
     private String category;
 
     @Enumerated(EnumType.STRING)
@@ -71,6 +73,7 @@ public class WallPost {
         WallPost post = new WallPost();
         post.setPostId(seed.getSeedId());
         post.setContent(seed.getContent());
+        post.setCaption(seed.getCaption());
         post.setCategory(seed.getCategory());
         post.setSource(PostSource.SEED);
         post.setMetaConfig(seed.getMetaConfig());
@@ -91,6 +94,9 @@ public class WallPost {
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+
+    public String getCaption() { return caption; }
+    public void setCaption(String caption) { this.caption = caption; }
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }

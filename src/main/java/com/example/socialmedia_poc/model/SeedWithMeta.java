@@ -7,6 +7,7 @@ public class SeedWithMeta {
     private String seedId;
     
     private String content;
+    private String caption;
     private String category;
     
     @JsonProperty("meta_config")
@@ -39,6 +40,14 @@ public class SeedWithMeta {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
     }
 
     public String getCategory() {

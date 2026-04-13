@@ -27,6 +27,8 @@ public class PoolPost {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    private String caption;
+
     private String category;
 
     @Column(columnDefinition = "TEXT")
@@ -100,6 +102,7 @@ public class PoolPost {
         PoolPost p = new PoolPost();
         p.setPostId(seed.getSeedId());
         p.setContent(seed.getContent());
+        p.setCaption(seed.getCaption());
         p.setCategory(seed.getCategory());
         p.setSource(PostSource.SEED);
         p.setMetaConfig(seed.getMetaConfig());
@@ -137,6 +140,7 @@ public class PoolPost {
         WallPost w = new WallPost();
         w.setPostId(this.postId);
         w.setContent(this.content);
+        w.setCaption(this.caption);
         w.setCategory(this.category);
         w.setSource(this.source == PostSource.SEED ? WallPost.PostSource.SEED : WallPost.PostSource.GENERATED);
         w.setMetaConfig(this.metaConfig);
@@ -151,6 +155,7 @@ public class PoolPost {
         SeedWithMeta s = new SeedWithMeta();
         s.setSeedId(this.postId);
         s.setContent(this.content);
+        s.setCaption(this.caption);
         s.setCategory(this.category);
         s.setMetaConfig(this.metaConfig);
         s.setGenerationContext(this.generationContext);
@@ -164,6 +169,9 @@ public class PoolPost {
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+
+    public String getCaption() { return caption; }
+    public void setCaption(String caption) { this.caption = caption; }
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }

@@ -348,6 +348,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const wordCount = fullText.split(/\s+/).length;
         const readMin = Math.max(1, Math.round(wordCount / 200));
 
+        // Caption: use provided caption, or auto-generate from content
+        let caption = seedData.caption || '';
+        if (!caption) {
+            // Auto-generate: take first sentence or first ~8 words
+            const sentences = fullText.match(/[^.!?]+[.!?]+/g);
+            if (sentences && sentences[0] && sentences[0].split(/\s+/).length <= 15) {
+                caption = sentences[0].trim();
+            } else {
+                const words = fullText.split(/\s+/);
+                caption = words.slice(0, Math.min(8, words.length)).join(' ');
+                if (words.length > 8) caption += '...';
+            }
+        }
+
         const tags = (seedData.tags || []).slice(0, 2);
         const tagHtml = tags.map(t => `<span class="tag-pill">${escapeTag(t)}</span>`).join('');
 
@@ -373,6 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
             </div>
+            <h2 class="card-caption">${escapeHtmlCard(caption)}</h2>
             <div class="card-body">${escapeHtmlCard(fullText)}</div>
             <div class="card-footer">
                 <span class="read-time">
@@ -508,6 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const normalizePost = (post) => ({
         seedId: post.post_id || post.seedId || post.postId || ('seed_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
         content: post.content || '',
+        caption: post.caption || null,
         category: post.category || 'General',
         tags: post.tags || [],
         metaConfig: post.meta_config || post.metaConfig || null,

@@ -23,7 +23,10 @@ public class PersonalizedSeedService {
     private static final String BASE_SYSTEM_MESSAGE =
             "You are Flux, a generative social media platform that creates short-form content. " +
             "Write like a sharp, knowledgeable human — NOT like an AI assistant. " +
-            "NEVER include <think> tags, reasoning, or explanations. Output ONLY the post content. " +
+            "NEVER include <think> tags, reasoning, or explanations. " +
+            "FORMAT: First line must be a catchy headline (like a news headline, 5-12 words, no quotes). " +
+            "Then a blank line, then the post body. Example:\n" +
+            "The Ancient City That Vanished Overnight\n\nBody text here...\n\n" +
             "ABSOLUTE BANS — never use these words or phrases: " +
             "\"delve\", \"tapestry\", \"leverage\", \"paradigm shift\", \"it's worth noting\", " +
             "\"in a world where\", \"at the end of the day\", \"game-changer\", \"deep dive\", " +
@@ -32,7 +35,7 @@ public class PersonalizedSeedService {
             "\"navigate\", \"realm\", \"foster\", \"embark\", \"shed light on\", " +
             "\"it goes without saying\", \"needless to say\", \"a testament to\". " +
             "Instead: be direct, use concrete language, name specific things. " +
-            "Keep posts under 120 words.";
+            "Keep posts under 120 words (not counting the headline).";
 
     private static String buildSystemMessage(MetaConfig config) {
         StringBuilder sb = new StringBuilder(BASE_SYSTEM_MESSAGE);
@@ -80,13 +83,28 @@ public class PersonalizedSeedService {
             try {
                 String systemMsg = buildSystemMessage(meta.getMetaConfig());
                 String seedContent = llmService.generateContent(systemMsg, prompt);
-                seedContent = cleanContent(seedContent);
                 
-                if (seedContent.isEmpty()) continue;
+                // Parse headline + body
+                String caption = null;
+                String body = seedContent;
+                if (seedContent != null && seedContent.contains("\n")) {
+                    String[] parts = seedContent.split("\n", 2);
+                    String firstLine = parts[0].trim();
+                    String rest = parts.length > 1 ? parts[1].trim() : "";
+                    // Headline is typically short (under 80 chars) and the body follows
+                    if (firstLine.length() > 0 && firstLine.length() < 80 && rest.length() > 0) {
+                        caption = firstLine;
+                        body = rest;
+                    }
+                }
+                body = cleanContent(body);
+                
+                if (body.isEmpty()) continue;
                 
                 SeedWithMeta seedWithMeta = new SeedWithMeta();
                 seedWithMeta.setSeedId(UUID.randomUUID().toString());
-                seedWithMeta.setContent(seedContent);
+                seedWithMeta.setContent(body);
+                seedWithMeta.setCaption(caption);
                 seedWithMeta.setCategory(meta.getCategory());
                 seedWithMeta.setMetaConfig(meta.getMetaConfig());
                 
@@ -217,11 +235,24 @@ public class PersonalizedSeedService {
             try {
                 String systemMsg = buildSystemMessage(targetMeta.getMetaConfig());
                 String seedContent = cleanContent(llmService.generateContent(systemMsg, prompt));
-                if (seedContent.isEmpty()) continue;
+                // Parse headline + body for category generation too
+                String caption = null;
+                String body = seedContent;
+                if (seedContent != null && seedContent.contains("\n")) {
+                    String[] parts = seedContent.split("\n", 2);
+                    String firstLine = parts[0].trim();
+                    String rest = parts.length > 1 ? parts[1].trim() : "";
+                    if (firstLine.length() > 0 && firstLine.length() < 80 && rest.length() > 0) {
+                        caption = firstLine;
+                        body = rest;
+                    }
+                }
+                if (body == null || body.isEmpty()) continue;
 
                 SeedWithMeta seed = new SeedWithMeta();
                 seed.setSeedId(UUID.randomUUID().toString());
-                seed.setContent(seedContent);
+                seed.setContent(body);
+                seed.setCaption(caption);
                 seed.setCategory(targetMeta.getCategory());
                 seed.setMetaConfig(targetMeta.getMetaConfig());
 

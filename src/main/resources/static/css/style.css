@@ -714,6 +714,16 @@ body::after {
     opacity: 0.92;
 }
 
+.card .card-caption {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--text-primary);
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+}
+
 .card .card-body {
     font-size: 0.95rem;
     line-height: 1.8;
