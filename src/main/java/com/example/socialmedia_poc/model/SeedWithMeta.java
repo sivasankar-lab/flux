@@ -16,6 +16,12 @@ public class SeedWithMeta {
     @JsonProperty("generation_context")
     private GenerationContext generationContext;
 
+    @JsonProperty("like_count")
+    private int likeCount;
+
+    @JsonProperty("view_count")
+    private int viewCount;
+
     public SeedWithMeta() {
     }
 
@@ -73,6 +79,12 @@ public class SeedWithMeta {
     public void setGenerationContext(GenerationContext generationContext) {
         this.generationContext = generationContext;
     }
+
+    public int getLikeCount() { return likeCount; }
+    public void setLikeCount(int likeCount) { this.likeCount = likeCount; }
+
+    public int getViewCount() { return viewCount; }
+    public void setViewCount(int viewCount) { this.viewCount = viewCount; }
 
     public static class GenerationContext {
         @JsonProperty("based_on_interaction")

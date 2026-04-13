@@ -55,11 +55,12 @@ public class SeedController {
     }
 
     @GetMapping("/by-category/{category}")
-    public List<SeedWithMeta> getSeedsByCategory(@PathVariable String category) {
+    public List<SeedWithMeta> getSeedsByCategory(@PathVariable String category,
+                                                  @RequestParam(defaultValue = "20") int limit) {
         List<PoolPost> catPosts = poolPostRepository.findByCategory(category);
         Collections.shuffle(catPosts);
         return catPosts.stream()
-                .limit(5)
+                .limit(limit)
                 .map(PoolPost::toSeedWithMeta)
                 .collect(Collectors.toList());
     }

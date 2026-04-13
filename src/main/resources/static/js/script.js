@@ -371,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Category badge with data attribute for color
         const catName = seedData.category || 'General';
+        const likes = seedData.likeCount || 0;
 
         card.innerHTML = `
             <div class="card-header">
@@ -388,6 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                         </svg>
+                        <span class="like-count">${likes > 0 ? likes : ''}</span>
                     </button>
                 </div>
             </div>
@@ -417,6 +419,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (likeBtn.classList.contains('liked')) {
                 playLikeSound();
                 recordInteraction(seedData.seedId, seedData.category, 'LIKE');
+                // Increment like count display
+                const countEl = likeBtn.querySelector('.like-count');
+                if (countEl) {
+                    const current = parseInt(countEl.textContent) || 0;
+                    countEl.textContent = current + 1;
+                }
             }
         });
 
@@ -532,7 +540,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tags: post.tags || [],
         metaConfig: post.meta_config || post.metaConfig || null,
         source: post.source || 'SEED',
-        batch: post.batch || 1
+        batch: post.batch || 1,
+        likeCount: post.like_count || post.likeCount || 0,
+        viewCount: post.view_count || post.viewCount || 0
     });
 
     // ══════════════════════════════════

@@ -159,6 +159,8 @@ public class PoolPost {
         s.setCategory(this.category);
         s.setMetaConfig(this.metaConfig);
         s.setGenerationContext(this.generationContext);
+        s.setLikeCount(this.likeCount);
+        s.setViewCount(this.viewCount);
         return s;
     }
 
