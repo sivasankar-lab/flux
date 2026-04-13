@@ -1,11 +1,13 @@
 package com.example.socialmedia_poc.controller;
 
 import com.example.socialmedia_poc.config.ApiKeyStore;
+import com.example.socialmedia_poc.model.MigrationLog;
 import com.example.socialmedia_poc.model.PoolPost;
 import com.example.socialmedia_poc.model.User;
 import com.example.socialmedia_poc.repository.PoolPostRepository;
 import com.example.socialmedia_poc.repository.UserRepository;
 import com.example.socialmedia_poc.repository.WallPostRepository;
+import com.example.socialmedia_poc.service.MigrationService;
 import com.example.socialmedia_poc.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ public class AdminController {
     private final PoolPostRepository poolPostRepository;
     private final WallPostRepository wallPostRepository;
     private final ApiKeyStore apiKeyStore;
+    private final MigrationService migrationService;
     private final String llmProvider;
 
     public AdminController(UserService userService,
@@ -34,12 +37,14 @@ public class AdminController {
                            PoolPostRepository poolPostRepository,
                            WallPostRepository wallPostRepository,
                            ApiKeyStore apiKeyStore,
+                           MigrationService migrationService,
                            @Value("${llm.provider:huggingface}") String llmProvider) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.poolPostRepository = poolPostRepository;
         this.wallPostRepository = wallPostRepository;
         this.apiKeyStore = apiKeyStore;
+        this.migrationService = migrationService;
         this.llmProvider = llmProvider;
     }
 
@@ -212,5 +217,48 @@ public class AdminController {
         boolean enabled = Boolean.parseBoolean(enabledObj.toString());
         apiKeyStore.setPoolGenerationEnabled(enabled);
         return ResponseEntity.ok(Map.of("status", "success", "pool_generation_enabled", enabled));
+    }
+
+    // ── Data Migrations ──
+
+    @GetMapping("/migrations")
+    public ResponseEntity<?> listMigrations() {
+        return ResponseEntity.ok(Map.of(
+            "status", "success",
+            "migrations", migrationService.listMigrations()
+        ));
+    }
+
+    @PostMapping("/migrations/run")
+    public ResponseEntity<?> runMigration(@RequestBody Map<String, Object> request) {
+        String name = (String) request.get("name");
+        if (name == null || name.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "'name' is required. Use GET /v1/admin/migrations to see available migrations."
+            ));
+        }
+        boolean dryRun = Boolean.parseBoolean(String.valueOf(request.getOrDefault("dry_run", "false")));
+        String triggeredBy = (String) request.getOrDefault("triggered_by", "admin_api");
+
+        try {
+            MigrationLog result = migrationService.runMigration(name, dryRun, triggeredBy);
+            return ResponseEntity.ok(Map.of("status", "success", "migration", result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("status", "error", "message", "Migration failed: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/migrations/logs")
+    public ResponseEntity<?> getMigrationLogs(@RequestParam(required = false) String name) {
+        List<MigrationLog> logs;
+        if (name != null && !name.isBlank()) {
+            logs = migrationService.getLogsForMigration(name);
+        } else {
+            logs = migrationService.getLogs();
+        }
+        return ResponseEntity.ok(Map.of("status", "success", "count", logs.size(), "logs", logs));
     }
 }
