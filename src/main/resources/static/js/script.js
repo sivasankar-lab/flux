@@ -348,18 +348,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const wordCount = fullText.split(/\s+/).length;
         const readMin = Math.max(1, Math.round(wordCount / 200));
 
-        // Caption: use provided caption, or auto-generate from content
+        // Caption: use provided caption, or generate a headline-style caption
         let caption = seedData.caption || '';
         if (!caption) {
-            // Auto-generate: take first sentence or first ~8 words
-            const sentences = fullText.match(/[^.!?]+[.!?]+/g);
-            if (sentences && sentences[0] && sentences[0].split(/\s+/).length <= 15) {
-                caption = sentences[0].trim();
+            // Generate headline from content: extract key phrase
+            const words = fullText.split(/\s+/);
+            // Try to find a strong opening clause (before first comma/dash/colon)
+            const clauseMatch = fullText.match(/^([^,:\-—]+)/); 
+            if (clauseMatch && clauseMatch[1].split(/\s+/).length >= 3 && clauseMatch[1].split(/\s+/).length <= 12) {
+                caption = clauseMatch[1].trim();
             } else {
-                const words = fullText.split(/\s+/);
-                caption = words.slice(0, Math.min(8, words.length)).join(' ');
-                if (words.length > 8) caption += '...';
+                // Take first 6-8 impactful words
+                caption = words.slice(0, Math.min(7, words.length)).join(' ');
             }
+            // Clean trailing punctuation and add ellipsis if truncated
+            caption = caption.replace(/[.,;:!?]+$/, '');
+            if (words.length > 7 && !clauseMatch) caption += '...';
         }
 
         const tags = (seedData.tags || []).slice(0, 2);
@@ -661,59 +665,6 @@ document.addEventListener('DOMContentLoaded', () => {
             playTapSound();
         });
     });
-
-    // Category chips
-    document.querySelectorAll('.category-chip').forEach(chip => {
-        chip.addEventListener('click', async () => {
-            document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            playTapSound();
-            
-            const category = chip.textContent.trim();
-            if (category === 'All') {
-                fetchAllSeeds();
-            } else {
-                await fetchSeedsByCategory(category);
-            }
-        });
-    });
-
-    const fetchSeedsByCategory = async (category) => {
-        try {
-            wall.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>';
-            
-            const categoryMap = {
-                'History': 'History & Society',
-                'Science': 'Science & How Things Work',
-                'Psychology': 'Psychology & Human Behavior',
-                'Technology': 'Technology & Future',
-                'Philosophy': 'Philosophy & Life Questions',
-                'Health': 'Health & Lifestyle Tips'
-            };
-            
-            const fullCategory = categoryMap[category] || category;
-            const response = await authFetch(`/v1/seeds/by-category/${encodeURIComponent(fullCategory)}`);
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            allSeeds = await response.json();
-            
-            if (!allSeeds || allSeeds.length === 0) {
-                wall.innerHTML = `<p class="error-message">No stories found for ${category}. Try generating more seeds!</p>`;
-                return;
-            }
-            
-            wall.innerHTML = '';
-            cardsRendered = 0;
-            personalizedSeedsLoaded = false;
-            isLoadingPersonalized = false;
-            renderCards();
-            
-        } catch (error) {
-            console.error('Failed to load seeds by category:', error);
-            wall.innerHTML = `<p class="error-message">Failed to load ${category} stories.</p>`;
-        }
-    };
 
     // View toggle
     document.querySelectorAll('.view-btn').forEach(btn => {

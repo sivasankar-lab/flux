@@ -28,9 +28,13 @@ public class SeedGenerationService {
             "You are Flux, a generative social media platform that creates engaging short-form content. " +
             "Write like a sharp, knowledgeable human — NOT like an AI assistant. " +
             "NEVER include <think> tags, reasoning, or explanations. " +
-            "FORMAT: First line must be a catchy headline (like a news headline, 5-12 words, no quotes). " +
-            "Then a blank line, then the post body. Example:\n" +
-            "The Ancient City That Vanished Overnight\n\nBody text here...\n\n" +
+            "CRITICAL FORMAT — you MUST follow this exactly:\n" +
+            "Line 1: A punchy, magnetic headline (5-10 words). Write it like a top journalist — " +
+            "use power words, create curiosity gaps, be specific. NO quotes around it. " +
+            "Examples of great headlines: 'NASA Found Something Strange on Europa', " +
+            "'Why Your Brain Lies About Time', 'The $2 Billion Typo That Changed History'.\n" +
+            "Line 2: MUST be blank.\n" +
+            "Line 3+: The post body.\n\n" +
             "No AI slop. Be specific, use real facts, names, and numbers.";
 
     private static String buildSystemMessage(MetaConfig config) {

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore — Flux</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a class="logo" href="/index.html">
+                    <svg class="logo-icon" width="28" height="28" viewBox="0 0 32 32" fill="none">
+                        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2"/>
+                        <path d="M10 16 L16 10 L22 16 L16 22 Z" fill="currentColor"/>
+                    </svg>
+                    <span class="logo-text">Flux</span>
+                </a>
+            </div>
+            <div class="nav-center">
+                <a class="nav-btn" href="/index.html">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18M3 6h18M3 18h18"/>
+                    </svg>
+                    <span>Stream</span>
+                </a>
+                <a class="nav-btn active" href="/explore.html">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <span>Explore</span>
+                </a>
+            </div>
+            <div class="nav-right">
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                    <span class="icon-sun">&#9728;</span>
+                    <span class="icon-moon">&#9790;</span>
+                </button>
+                <button class="profile-btn">
+                    <div class="avatar">
+                        <span>U</span>
+                    </div>
+                    <span>User</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Explore Content -->
+    <div class="explore-container">
+        <!-- Hero / Header -->
+        <div class="explore-hero">
+            <h1 class="explore-title">Explore Topics</h1>
+            <p class="explore-subtitle">Dive into curated categories. Discover stories that spark curiosity.</p>
+        </div>
+
+        <!-- Category Grid -->
+        <div class="explore-grid" id="exploreGrid">
+            <div class="explore-card" data-category="Hooks">
+                <div class="explore-card-icon">&#127917;</div>
+                <div class="explore-card-content">
+                    <h3>Hooks</h3>
+                    <p>Viral ideas, scroll-stoppers, and thought experiments designed to hook you in.</p>
+                </div>
+                <div class="explore-card-count"><span class="count-num" data-cat="Hooks">—</span> stories</div>
+                <div class="explore-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+
+            <div class="explore-card" data-category="History & Society">
+                <div class="explore-card-icon">&#127963;</div>
+                <div class="explore-card-content">
+                    <h3>History & Society</h3>
+                    <p>Lost civilizations, turning points, and the untold stories that shaped our world.</p>
+                </div>
+                <div class="explore-card-count"><span class="count-num" data-cat="History & Society">—</span> stories</div>
+                <div class="explore-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+
+            <div class="explore-card" data-category="Science & How Things Work">
+                <div class="explore-card-icon">&#128300;</div>
+                <div class="explore-card-content">
+                    <h3>Science & How Things Work</h3>
+                    <p>From quantum weirdness to everyday physics — the mechanisms behind reality.</p>
+                </div>
+                <div class="explore-card-count"><span class="count-num" data-cat="Science & How Things Work">—</span> stories</div>
+                <div class="explore-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+
+            <div class="explore-card" data-category="Psychology & Human Behavior">
+                <div class="explore-card-icon">&#129504;</div>
+                <div class="explore-card-content">
+                    <h3>Psychology & Human Behavior</h3>
+                    <p>Why we do what we do — biases, habits, emotions, and the quirks of the mind.</p>
+                </div>
+                <div class="explore-card-count"><span class="count-num" data-cat="Psychology & Human Behavior">—</span> stories</div>
+                <div class="explore-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+
+            <div class="explore-card" data-category="Technology & Future">
+                <div class="explore-card-icon">&#128640;</div>
+                <div class="explore-card-content">
+                    <h3>Technology & Future</h3>
+                    <p>AI breakthroughs, space tech, and innovations that will redefine tomorrow.</p>
+                </div>
+                <div class="explore-card-count"><span class="count-num" data-cat="Technology & Future">—</span> stories</div>
+                <div class="explore-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+
+            <div class="explore-card" data-category="Philosophy & Life Questions">
+                <div class="explore-card-icon">&#129300;</div>
+                <div class="explore-card-content">
+                    <h3>Philosophy & Life Questions</h3>
+                    <p>The big questions — existence, meaning, ethics, and what it means to be alive.</p>
+                </div>
+                <div class="explore-card-count"><span class="count-num" data-cat="Philosophy & Life Questions">—</span> stories</div>
+                <div class="explore-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+
+            <div class="explore-card" data-category="Health & Lifestyle Tips">
+                <div class="explore-card-icon">&#128154;</div>
+                <div class="explore-card-content">
+                    <h3>Health & Lifestyle Tips</h3>
+                    <p>Evidence-based wellness — sleep, nutrition, fitness, and mental resilience.</p>
+                </div>
+                <div class="explore-card-count"><span class="count-num" data-cat="Health & Lifestyle Tips">—</span> stories</div>
+                <div class="explore-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Detail View (hidden by default) -->
+        <div class="explore-detail" id="exploreDetail" style="display:none;">
+            <div class="explore-detail-header">
+                <button class="explore-back-btn" id="backBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                    All Topics
+                </button>
+                <div class="explore-detail-info">
+                    <span class="explore-detail-icon" id="detailIcon"></span>
+                    <h2 class="explore-detail-title" id="detailTitle"></h2>
+                </div>
+            </div>
+            <div class="explore-detail-wall" id="detailWall">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound toggle -->
+    <div class="sound-indicator">
+        <button class="sound-toggle" id="soundToggle" title="Toggle sound effects">&#128266;</button>
+    </div>
+
+    <script src="js/explore.js"></script>
+</body>
+</html>
