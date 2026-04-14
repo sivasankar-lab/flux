@@ -39,13 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const wall = document.querySelector('#feedWall');
     const loadingIndicator = document.querySelector('#loadingIndicator');
     const refreshBtn = document.querySelector('#refreshBtn');
-    const generateSeedsBtn = document.querySelector('#generateSeedsBtn');
     const scrollTopBtn = document.querySelector('#scrollTopBtn');
     const totalViewedEl = document.querySelector('#totalViewed');
     const avgDwellEl = document.querySelector('#avgDwell');
     const themeToggle = document.querySelector('#themeToggle');
     const soundToggle = document.querySelector('#soundToggle');
-    const poolGenToggle = document.querySelector('#poolGenerationToggle');
 
     const userId = storedUserId;
 
@@ -124,27 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ══════════════════════════════════
-    // Pool Generation Toggle
-    // ══════════════════════════════════
-    let poolGenerationEnabled = localStorage.getItem('flux_pool_gen') !== 'off';
-
-    function updatePoolToggle() {
-        if (poolGenToggle) {
-            poolGenToggle.classList.toggle('active', poolGenerationEnabled);
-        }
-    }
-    updatePoolToggle();
-
-    if (poolGenToggle) {
-        poolGenToggle.addEventListener('click', () => {
-            poolGenerationEnabled = !poolGenerationEnabled;
-            localStorage.setItem('flux_pool_gen', poolGenerationEnabled ? 'on' : 'off');
-            updatePoolToggle();
-            playTapSound();
-        });
-    }
-
-    // ══════════════════════════════════
     // Auth helper
     // ══════════════════════════════════
     function authFetch(url, options = {}) {
@@ -219,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 const data = await response.json();
-                if (data.trigger && data.trigger !== 'NONE' && poolGenerationEnabled) {
+                if (data.trigger && data.trigger !== 'NONE') {
                     showTriggerToast(data.trigger, data.trigger_message || 'New content being prepared...');
                 }
             }
@@ -408,11 +385,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // Sound + ripple on card click/touch
+        // Sound + ripple on card click/touch → open Deep Dive
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.like-btn')) return;
+            if (e.target.closest('.like-btn') || e.target.closest('.deepdive-btn')) return;
             playTapSound();
             addRipple(card, e);
+            showDeepDiveConfirmation(seedData);
         });
         
         // Like button
@@ -570,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (!allSeeds || allSeeds.length === 0) {
-                wall.innerHTML = '<p class="error-message">No stories found. Generate some seeds using the button in the right panel!</p>';
+                wall.innerHTML = '<p class="error-message">No stories found. Please try refreshing.</p>';
                 return;
             }
 
@@ -586,30 +564,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const generateSeeds = async () => {
-        if (!generateSeedsBtn) return;
-        const originalText = generateSeedsBtn.innerHTML;
-        generateSeedsBtn.innerHTML = '<div class="spinner"></div> Generating...';
-        generateSeedsBtn.disabled = true;
-
-        try {
-            const response = await authFetch('/v1/seeds/generate', { method: 'POST' });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            await response.text();
-            setTimeout(() => fetchAllSeeds(), 500);
-        } catch (error) {
-            console.error('Failed to generate seeds:', error);
-            alert('Failed to generate seeds.');
-        } finally {
-            setTimeout(() => {
-                generateSeedsBtn.innerHTML = originalText;
-                generateSeedsBtn.disabled = false;
-            }, 1000);
-        }
-    };
-
     const fetchPersonalizedSeeds = async () => {
-        if (isLoadingPersonalized || personalizedSeedsLoaded || !poolGenerationEnabled) return;
+        if (isLoadingPersonalized || personalizedSeedsLoaded) return;
         isLoadingPersonalized = true;
         
         try {
@@ -660,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (scrollTop + clientHeight >= scrollHeight - 100) {
             if (cardsRendered < allSeeds.length) {
                 renderCards();
-            } else if (!isLoadingPersonalized && poolGenerationEnabled) {
+            } else if (!isLoadingPersonalized) {
                 personalizedSeedsLoaded = false;
                 fetchPersonalizedSeeds();
             }
@@ -694,7 +650,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listeners
     // ══════════════════════════════════
     if (refreshBtn) refreshBtn.addEventListener('click', () => { playTapSound(); fetchAllSeeds(); });
-    if (generateSeedsBtn) generateSeedsBtn.addEventListener('click', () => { playTapSound(); generateSeeds(); });
     if (scrollTopBtn) scrollTopBtn.addEventListener('click', scrollToTop);
     
     window.addEventListener('scroll', handleScroll, { passive: true });
