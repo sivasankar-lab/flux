@@ -30,7 +30,15 @@ public class EncryptionUtil {
 
     private final SecretKey secretKey;
 
-    public EncryptionUtil(@Value("${ENCRYPTION_KEY:flux-dev-fallback-key-change-in-prod}") String masterKey) {
+    public EncryptionUtil(@Value("${ENCRYPTION_KEY:}") String masterKey) {
+        if (masterKey == null || masterKey.isBlank()) {
+            log.warn("\n" +
+                    "╔══════════════════════════════════════════════════════════════╗\n" +
+                    "║  WARNING: ENCRYPTION_KEY env var is NOT set!                ║\n" +
+                    "║  Using insecure fallback key. Set ENCRYPTION_KEY in prod!   ║\n" +
+                    "╚══════════════════════════════════════════════════════════════╝");
+            masterKey = "flux-dev-fallback-key-DO-NOT-USE-IN-PROD-" + System.getProperty("user.name", "dev");
+        }
         try {
             // Derive a 256-bit key via SHA-256 of the master passphrase
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

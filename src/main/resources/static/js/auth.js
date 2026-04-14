@@ -2,7 +2,11 @@
 const sessionToken = localStorage.getItem('flux_session_token');
 if (sessionToken) {
     // Validate session
-    fetch(`/v1/users/session/${sessionToken}`)
+    fetch('/v1/users/session/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_token: sessionToken })
+    })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {

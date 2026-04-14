@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,15 +36,19 @@ public class User {
     private Instant lastLogin;
 
     @Column(name = "session_token", unique = true)
-    @JsonProperty("session_token")
+    @JsonIgnore
     private String sessionToken;
+
+    @Column(name = "session_created_at")
+    @JsonIgnore
+    private Instant sessionCreatedAt;
 
     @Column(name = "password_hash")
     @JsonIgnore
     private String passwordHash;
 
     @Column(name = "google_id", unique = true)
-    @JsonProperty("google_id")
+    @JsonIgnore
     private String googleId;
 
     @Column(name = "auth_provider")
@@ -78,9 +83,14 @@ public class User {
         this.lastLogin = Instant.now();
     }
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private String generateUserId() {
-        return "user_" + System.currentTimeMillis() + "_" + 
-               Long.toHexString(Double.doubleToLongBits(Math.random()));
+        byte[] bytes = new byte[16];
+        SECURE_RANDOM.nextBytes(bytes);
+        StringBuilder hex = new StringBuilder();
+        for (byte b : bytes) hex.append(String.format("%02x", b));
+        return "user_" + hex;
     }
 
     // Getters and Setters
@@ -138,6 +148,14 @@ public class User {
 
     public void setSessionToken(String sessionToken) {
         this.sessionToken = sessionToken;
+    }
+
+    public Instant getSessionCreatedAt() {
+        return sessionCreatedAt;
+    }
+
+    public void setSessionCreatedAt(Instant sessionCreatedAt) {
+        this.sessionCreatedAt = sessionCreatedAt;
     }
 
     public String getPasswordHash() {

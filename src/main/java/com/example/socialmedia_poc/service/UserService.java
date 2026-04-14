@@ -6,12 +6,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class UserService {
+
+    private static final Duration SESSION_TTL = Duration.ofHours(24);
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -33,7 +38,7 @@ public class UserService {
 
         User newUser = new User(username, email, displayName);
         newUser.setPasswordHash(passwordEncoder.encode(password));
-        newUser.setSessionToken(generateSessionToken());
+        issueSession(newUser);
         return userRepository.save(newUser);
     }
 
@@ -53,13 +58,24 @@ public class UserService {
         }
 
         user.setLastLogin(Instant.now());
-        user.setSessionToken(generateSessionToken());
+        issueSession(user);
         return userRepository.save(user);
     }
 
-    // Validate session token
+    // Validate session token — returns null if invalid or expired
     public User validateSession(String sessionToken) {
-        return userRepository.findBySessionToken(sessionToken).orElse(null);
+        User user = userRepository.findBySessionToken(sessionToken).orElse(null);
+        if (user == null) return null;
+        // Check expiry
+        if (user.getSessionCreatedAt() == null ||
+            Duration.between(user.getSessionCreatedAt(), Instant.now()).compareTo(SESSION_TTL) > 0) {
+            // Session expired — clear it
+            user.setSessionToken(null);
+            user.setSessionCreatedAt(null);
+            userRepository.save(user);
+            return null;
+        }
+        return user;
     }
 
     // Get user by ID
@@ -78,6 +94,7 @@ public class UserService {
         userRepository.findBySessionToken(sessionToken)
                 .ifPresent(user -> {
                     user.setSessionToken(null);
+                    user.setSessionCreatedAt(null);
                     userRepository.save(user);
                 });
     }
@@ -89,7 +106,7 @@ public class UserService {
         User user = userRepository.findByGoogleId(googleId).orElse(null);
         if (user != null) {
             user.setLastLogin(Instant.now());
-            user.setSessionToken(generateSessionToken());
+            issueSession(user);
             if (pictureUrl != null) user.setProfilePictureUrl(pictureUrl);
             return userRepository.save(user);
         }
@@ -100,7 +117,7 @@ public class UserService {
             user.setGoogleId(googleId);
             user.setAuthProvider("BOTH");
             user.setLastLogin(Instant.now());
-            user.setSessionToken(generateSessionToken());
+            issueSession(user);
             if (pictureUrl != null) user.setProfilePictureUrl(pictureUrl);
             return userRepository.save(user);
         }
@@ -111,7 +128,7 @@ public class UserService {
         newUser.setGoogleId(googleId);
         newUser.setAuthProvider("GOOGLE");
         newUser.setProfilePictureUrl(pictureUrl);
-        newUser.setSessionToken(generateSessionToken());
+        issueSession(newUser);
         return userRepository.save(newUser);
     }
 
@@ -129,10 +146,17 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    // Generate session token
+    // Generate cryptographically secure session token
     private String generateSessionToken() {
-        return "session_" + System.currentTimeMillis() + "_" +
-                UUID.randomUUID().toString().replace("-", "");
+        byte[] bytes = new byte[32];
+        SECURE_RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    // Issue a new session token with creation timestamp
+    private void issueSession(User user) {
+        user.setSessionToken(generateSessionToken());
+        user.setSessionCreatedAt(Instant.now());
     }
 
     // Save user interests from onboarding

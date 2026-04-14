@@ -765,7 +765,11 @@
     // Validate session and check admin role
     (async () => {
         try {
-            const res = await fetch(`/v1/users/session/${token}`);
+            const res = await fetch('/v1/users/session/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_token: token })
+            });
             const data = await res.json();
             if (data.status !== 'success') {
                 localStorage.clear();

@@ -2,6 +2,7 @@ package com.example.socialmedia_poc.controller;
 
 import com.example.socialmedia_poc.model.Interaction;
 import com.example.socialmedia_poc.model.PoolPost;
+import com.example.socialmedia_poc.model.User;
 import com.example.socialmedia_poc.repository.PoolPostRepository;
 import com.example.socialmedia_poc.service.InteractionService;
 import com.example.socialmedia_poc.service.LLMService;
@@ -12,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -41,10 +44,12 @@ public class DeepDiveController {
     public ResponseEntity<?> deepDive(@PathVariable String postId,
                                       @RequestBody Map<String, String> body) {
         try {
-            String userId = body.get("user_id");
-            if (userId == null || userId.isBlank()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "user_id is required"));
+            // Get userId from authenticated session — not from request body (IDOR fix)
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !(auth.getPrincipal() instanceof User)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Authentication required"));
             }
+            String userId = ((User) auth.getPrincipal()).getUserId();
 
             Optional<PoolPost> optPost = poolPostRepository.findById(postId);
             if (optPost.isEmpty()) {
@@ -82,7 +87,7 @@ public class DeepDiveController {
         } catch (Exception e) {
             log.error("[DeepDive] Failed: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Deep dive generation failed", "details", e.getMessage()));
+                    .body(Map.of("error", "Deep dive generation failed"));
         }
     }
 

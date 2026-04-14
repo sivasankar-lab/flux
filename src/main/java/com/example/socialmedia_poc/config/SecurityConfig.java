@@ -13,9 +13,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final SessionTokenAuthFilter sessionTokenAuthFilter;
+    private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(SessionTokenAuthFilter sessionTokenAuthFilter) {
+    public SecurityConfig(SessionTokenAuthFilter sessionTokenAuthFilter,
+                          RateLimitFilter rateLimitFilter) {
         this.sessionTokenAuthFilter = sessionTokenAuthFilter;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -26,7 +29,7 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
                 // Public auth endpoints
-                .antMatchers("/v1/users/register", "/v1/users/login", "/v1/users/google-login", "/v1/users/session/**").permitAll()
+                .antMatchers("/v1/users/register", "/v1/users/login", "/v1/users/google-login", "/v1/users/session/validate", "/v1/users/session/**").permitAll()
                 // Public config endpoint
                 .antMatchers("/v1/config/public", "/v1/config/interests").permitAll()
                 // Public health check and static resources
@@ -41,7 +44,8 @@ public class SecurityConfig {
                 // Everything else (e.g. static fallback) is open
                 .anyRequest().permitAll()
             .and()
-            .addFilterBefore(sessionTokenAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(sessionTokenAuthFilter, RateLimitFilter.class);
 
         return http.build();
     }
