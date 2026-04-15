@@ -677,7 +677,6 @@
                     </label>
                     <div style="display:flex;gap:0.5rem;align-items:center;">
                         <input type="password" id="settingsHfKey" placeholder="hf_..." style="flex:1;padding:0.6rem 0.75rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
-                        <button class="btn btn-sm" onclick="toggleKeyVisibility('settingsHfKey', this)">Show</button>
                     </div>
                     <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--text-muted);" id="hfKeyStatus">Loading...</div>
                 </div>
@@ -689,7 +688,6 @@
                     </label>
                     <div style="display:flex;gap:0.5rem;align-items:center;">
                         <input type="password" id="settingsGrokKey" placeholder="xai-..." style="flex:1;padding:0.6rem 0.75rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:monospace;">
-                        <button class="btn btn-sm" onclick="toggleKeyVisibility('settingsGrokKey', this)">Show</button>
                     </div>
                     <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--text-muted);" id="grokKeyStatus">Loading...</div>
                 </div>
@@ -1147,17 +1145,6 @@
             showToast('Test failed: ' + e.message, 'error');
         }
     });
-
-    function toggleKeyVisibility(inputId, btn) {
-        const input = document.getElementById(inputId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            btn.textContent = 'Hide';
-        } else {
-            input.type = 'password';
-            btn.textContent = 'Show';
-        }
-    }
 
     // ── Migrations ──
     async function loadMigrations() {
