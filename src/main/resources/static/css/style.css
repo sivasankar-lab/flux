@@ -502,38 +502,7 @@ body::after {
 
 .control-btn:active { transform: translateY(0); }
 
-.view-toggle {
-    display: flex;
-    gap: 0.25rem;
-    background: var(--bg-tertiary);
-    padding: 0.2rem;
-    border-radius: 8px;
-}
 
-.view-btn {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.view-btn:hover {
-    background: var(--accent-soft);
-    color: var(--accent-primary);
-}
-
-.view-btn.active {
-    background: var(--accent-primary);
-    color: #ffffff;
-    box-shadow: 0 2px 8px var(--glow-color);
-}
 
 /* ══════════════════════════════════
    Feed Wall / Cards

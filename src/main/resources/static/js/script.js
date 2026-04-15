@@ -636,16 +636,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // View toggle
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            playTapSound();
-            wall.style.gridTemplateColumns = btn.dataset.view === 'list' ? '1fr' : '';
-        });
-    });
-
     // ══════════════════════════════════
     // Event listeners
     // ══════════════════════════════════
