@@ -1105,7 +1105,9 @@ body::after {
 @media (max-width: 968px) {
     .sidebar { display: none; }
     .app-container { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; }
-    .nav-center { display: none; }
+    .nav-center { padding: 0.15rem; }
+    .nav-center .nav-btn span { display: none; }
+    .nav-btn { padding: 0.5rem 0.7rem; }
     .feed-title { font-size: 1.5rem; }
     .card { padding: 1.5rem; }
     .notification-btn { display: none; }
@@ -1114,18 +1116,27 @@ body::after {
 @media (max-width: 640px) {
     .nav-container { padding: 0 0.75rem; }
     .logo-text { display: none; }
+    .nav-center { gap: 0.15rem; }
+    .nav-btn { padding: 0.45rem 0.6rem; }
+    .nav-btn svg { width: 16px; height: 16px; }
     .app-container { padding: 0.5rem; }
     .feed-header { margin-bottom: 0.75rem; }
     .feed-title { font-size: 1.3rem; }
+    .feed-subtitle { font-size: 0.8rem; }
     .feed-controls { flex-direction: column; gap: 0.5rem; padding: 0.65rem; }
     .control-btn { width: 100%; justify-content: center; }
     .card { padding: 1.25rem; border-radius: 14px; }
     .card .card-body { font-size: 0.9rem; }
+    .card-caption { font-size: 1rem; }
+    .card-footer { flex-wrap: wrap; gap: 0.4rem; }
     .wall { gap: 0.75rem; }
     .fab { bottom: 1rem; right: 1rem; width: 42px; height: 42px; }
     .profile-btn span { display: none; }
     .personalized-separator { margin: 1rem 0; padding: 0.75rem 0; }
     .separator-text { font-size: 0.75rem; padding: 0.4rem 0.85rem; }
+    .sound-indicator { bottom: 1rem; left: 1rem; }
+    .sound-toggle { width: 34px; height: 34px; font-size: 0.85rem; }
+    .theme-toggle { width: 34px; height: 34px; }
 }
 
 /* ══════════════════════════════════
@@ -1504,10 +1515,20 @@ body::after {
 @media (max-width: 640px) {
     .explore-container { padding: 1rem; }
     .explore-title { font-size: 1.6rem; }
+    .explore-subtitle { font-size: 0.88rem; }
+    .explore-hero { margin-bottom: 1.5rem; }
     .explore-card { padding: 1rem 1.15rem; }
-    .explore-card-icon { width: 44px; height: 44px; font-size: 1.5rem; }
+    .explore-card-icon { width: 44px; height: 44px; font-size: 1.5rem; border-radius: 10px; }
     .explore-card-content p { display: none; }
+    .explore-card-content h3 { font-size: 0.95rem; }
+    .explore-card-count { font-size: 0.7rem; }
+    .explore-card-count .count-num { font-size: 0.95rem; }
+    .explore-card-arrow { display: none; }
     .explore-detail-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+    .explore-detail-title { font-size: 1.2rem; }
+    .explore-back-btn { font-size: 0.8rem; padding: 0.45rem 0.85rem; }
+    .explore-feed-header h2 { font-size: 1.15rem; }
+    .explore-feed-header p { font-size: 0.8rem; }
 }
 
 /* ── Explore Tabs ── */
@@ -1619,6 +1640,7 @@ body::after {
 
 /* ── Responsive Explore Tabs ── */
 @media (max-width: 640px) {
+    .explore-tabs { gap: 0.25rem; padding: 0.2rem; }
     .explore-tab {
         padding: 0.5rem 0.5rem;
         font-size: 0.75rem;
@@ -1626,4 +1648,5 @@ body::after {
     .explore-tab span {
         display: none;
     }
+    .explore-tab svg { width: 18px; height: 18px; }
 }

@@ -233,7 +233,24 @@
         @media (max-width: 640px) {
             .dd-container { padding: 1rem 1rem 3rem; }
             .dd-title { font-size: 1.5rem; }
-            .dd-content { font-size: 0.95rem; }
+            .dd-content { font-size: 0.95rem; line-height: 1.7; }
+            .dd-original { padding: 0.85rem 1rem; font-size: 0.85rem; }
+            .dd-keypoints { padding: 1rem; border-radius: 12px; }
+            .dd-keypoints-list li { font-size: 0.88rem; padding: 0.5rem 0 0.5rem 1.3rem; }
+            .dd-sources { padding: 1rem; border-radius: 12px; }
+            .dd-source-card { padding: 0.75rem 0.85rem; border-radius: 8px; }
+            .dd-source-title { font-size: 0.85rem; }
+            .dd-source-url { font-size: 0.7rem; }
+            .dd-section-title { font-size: 1rem; }
+            .dd-topbar { margin-bottom: 1rem; }
+            .dd-back-btn { font-size: 0.82rem; padding: 0.45rem 0.85rem; }
+        }
+
+        @media (max-width: 400px) {
+            .dd-container { padding: 0.75rem 0.75rem 2.5rem; }
+            .dd-title { font-size: 1.3rem; }
+            .dd-content { font-size: 0.9rem; }
+            .dd-keypoints-list li { font-size: 0.83rem; }
         }
     </style>
 </head>
@@ -291,6 +308,15 @@
         const params = new URLSearchParams(window.location.search);
         const postId = params.get('postId');
         const category = params.get('category') || 'General';
+        const fromPage = params.get('from');
+
+        // Update back button based on origin
+        const backBtn = document.querySelector('.dd-back-btn');
+        if (backBtn && fromPage === 'explore') {
+            backBtn.href = '/explore.html';
+            backBtn.textContent = '';
+            backBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Back to Explore';
+        }
 
         if (!postId) {
             showError('No post ID provided.');
@@ -319,12 +345,14 @@
         }
 
         function showError(msg) {
+            const backUrl = fromPage === 'explore' ? '/explore.html' : '/';
+            const backLabel = fromPage === 'explore' ? 'Back to Explore' : 'Back to Feed';
             document.getElementById('deepDiveContent').innerHTML = `
                 <div class="dd-error">
                     <div class="dd-error-icon">&#9888;</div>
                     <p>${escapeHtml(msg)}</p>
                     <br>
-                    <a href="/" class="dd-back-btn" style="display:inline-flex;">Back to Feed</a>
+                    <a href="${backUrl}" class="dd-back-btn" style="display:inline-flex;">${backLabel}</a>
                 </div>
             `;
         }

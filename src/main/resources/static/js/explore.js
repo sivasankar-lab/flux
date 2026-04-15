@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         overlay.querySelector('.deepdive-confirm-btn').addEventListener('click', function() {
-            var p = new URLSearchParams({ postId: seedData.seedId, category: catName });
+            var p = new URLSearchParams({ postId: seedData.seedId, category: catName, from: 'explore' });
             window.location.href = '/deepdive.html?' + p.toString();
         });
     }
