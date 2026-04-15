@@ -1090,6 +1090,70 @@ body::after {
 .sound-toggle.muted { opacity: 0.5; }
 
 /* ══════════════════════════════════
+   Mobile Bottom Navigation
+   ══════════════════════════════════ */
+
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--navbar-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    justify-content: space-around;
+    align-items: center;
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.4rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+}
+
+.mobile-nav-item svg {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.2s ease;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item:active {
+    color: var(--accent-primary);
+}
+
+.mobile-nav-item:active svg {
+    transform: scale(0.9);
+}
+
+.mobile-nav-item.active {
+    color: var(--accent-primary);
+}
+
+.mobile-nav-item.active svg {
+    filter: drop-shadow(0 2px 6px var(--glow-color));
+}
+
+/* ══════════════════════════════════
    Responsive
    ══════════════════════════════════ */
 
@@ -1104,21 +1168,18 @@ body::after {
 
 @media (max-width: 968px) {
     .sidebar { display: none; }
-    .app-container { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; }
-    .nav-center { padding: 0.15rem; }
-    .nav-center .nav-btn span { display: none; }
-    .nav-btn { padding: 0.5rem 0.7rem; }
+    .app-container { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; padding-bottom: 5rem; }
+    .nav-center { display: none; }
     .feed-title { font-size: 1.5rem; }
     .card { padding: 1.5rem; }
     .notification-btn { display: none; }
+    .mobile-bottom-nav { display: flex; }
+    .explore-container { padding-bottom: 5rem; }
 }
 
 @media (max-width: 640px) {
     .nav-container { padding: 0 0.75rem; }
     .logo-text { display: none; }
-    .nav-center { gap: 0.15rem; }
-    .nav-btn { padding: 0.45rem 0.6rem; }
-    .nav-btn svg { width: 16px; height: 16px; }
     .app-container { padding: 0.5rem; }
     .feed-header { margin-bottom: 0.75rem; }
     .feed-title { font-size: 1.3rem; }
