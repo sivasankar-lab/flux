@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +30,12 @@ public class AsyncContentGeneratorService {
     private static final Logger log = LoggerFactory.getLogger(AsyncContentGeneratorService.class);
     private static final String SYSTEM_USER = "system";
     private static final int MIN_POSTS_PER_CATEGORY = 12;
+    private static final int MAX_CONSECUTIVE_FAILURES = 5;
+    private static final long FAILURE_COOLDOWN_MS = 300_000; // 5 minutes
+
+    /** Tracks consecutive LLM failures to implement a circuit breaker */
+    private final AtomicInteger consecutiveFailures = new AtomicInteger(0);
+    private volatile long cooldownUntil = 0;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "async-content-gen");
@@ -111,9 +118,30 @@ public class AsyncContentGeneratorService {
         }
     }
 
+    /**
+     * Returns true if in cooldown due to repeated LLM failures (circuit breaker open).
+     */
+    private boolean isInCooldown() {
+        if (cooldownUntil == 0) return false;
+        if (System.currentTimeMillis() >= cooldownUntil) {
+            // Cooldown expired — reset and allow retries
+            cooldownUntil = 0;
+            consecutiveFailures.set(0);
+            log.info("[AsyncGen] Cooldown expired — resuming generation");
+            return false;
+        }
+        return true;
+    }
+
     private void drainQueue() {
         GenerationTask task;
         while ((task = taskQueue.poll()) != null) {
+            // Circuit breaker: if too many consecutive failures, drop remaining tasks and wait
+            if (isInCooldown()) {
+                log.debug("[AsyncGen] Circuit breaker open — discarding queued task for '{}'", task.category);
+                continue;
+            }
+
             final GenerationTask current = task;
             try {
                 log.info("[AsyncGen] ▶ Generating {} posts for '{}' ({})", current.count, current.category, current.reason);
@@ -130,12 +158,32 @@ public class AsyncContentGeneratorService {
                     long elapsed = System.currentTimeMillis() - start;
                     log.info("[AsyncGen] ✓ Added {} posts to pool for '{}' ({}ms)",
                             poolPosts.size(), current.category, elapsed);
+                    consecutiveFailures.set(0); // reset on success
                 } else {
-                    log.warn("[AsyncGen] LLM returned empty for '{}'", current.category);
+                    int failures = consecutiveFailures.incrementAndGet();
+                    log.warn("[AsyncGen] LLM returned empty for '{}' (consecutive failures: {})", current.category, failures);
+                    if (failures >= MAX_CONSECUTIVE_FAILURES) {
+                        cooldownUntil = System.currentTimeMillis() + FAILURE_COOLDOWN_MS;
+                        log.error("[AsyncGen] ⚠ {} consecutive failures — entering 5min cooldown. Check your LLM API key!", failures);
+                        // Drain remaining tasks without executing them
+                        int dropped = 0;
+                        while (taskQueue.poll() != null) dropped++;
+                        if (dropped > 0) log.warn("[AsyncGen] Dropped {} queued tasks during cooldown", dropped);
+                        return;
+                    }
                 }
             } catch (Exception e) {
-                log.error("[AsyncGen] ✗ Failed: {} posts for '{}' – {}",
-                        current.count, current.category, e.getMessage());
+                int failures = consecutiveFailures.incrementAndGet();
+                log.error("[AsyncGen] ✗ Failed: {} posts for '{}' – {} (consecutive failures: {})",
+                        current.count, current.category, e.getMessage(), failures);
+                if (failures >= MAX_CONSECUTIVE_FAILURES) {
+                    cooldownUntil = System.currentTimeMillis() + FAILURE_COOLDOWN_MS;
+                    log.error("[AsyncGen] ⚠ {} consecutive failures — entering 5min cooldown. Check your LLM API key!", failures);
+                    int dropped = 0;
+                    while (taskQueue.poll() != null) dropped++;
+                    if (dropped > 0) log.warn("[AsyncGen] Dropped {} queued tasks during cooldown", dropped);
+                    return;
+                }
             }
         }
     }
@@ -152,6 +200,11 @@ public class AsyncContentGeneratorService {
     public void monitorPoolHealth() {
         if (!apiKeyStore.isPoolGenerationEnabled()) {
             log.debug("[AsyncGen] Pool generation disabled — skipping health check");
+            return;
+        }
+        if (isInCooldown()) {
+            long remainingSec = (cooldownUntil - System.currentTimeMillis()) / 1000;
+            log.warn("[AsyncGen] Circuit breaker open — skipping pool health check ({}s remaining)", remainingSec);
             return;
         }
         try {

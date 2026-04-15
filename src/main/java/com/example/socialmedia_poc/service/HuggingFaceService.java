@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Duration;
 import java.util.*;
@@ -69,14 +70,26 @@ public class HuggingFaceService implements LLMService {
 
         log.info("[HuggingFace] Calling model: {}", model);
 
-        String response = webClient.post()
-                .uri("/v1/chat/completions")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKeyStore.getHuggingFaceApiKey())
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(String.class)
-                .timeout(Duration.ofSeconds(90)) // HF free tier can be slow
-                .block();
+        String response;
+        try {
+            response = webClient.post()
+                    .uri("/v1/chat/completions")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKeyStore.getHuggingFaceApiKey())
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .timeout(Duration.ofSeconds(90)) // HF free tier can be slow
+                    .block();
+        } catch (WebClientResponseException.Unauthorized e) {
+            log.error("[HuggingFace] 401 Unauthorized — API key is invalid or expired. Update it in the admin panel.");
+            throw new RuntimeException("HuggingFace API key is invalid or expired (401 Unauthorized)");
+        } catch (WebClientResponseException.Forbidden e) {
+            log.error("[HuggingFace] 403 Forbidden — API key lacks required permissions.");
+            throw new RuntimeException("HuggingFace API key lacks permissions (403 Forbidden)");
+        } catch (WebClientResponseException e) {
+            log.error("[HuggingFace] HTTP {} from API: {}", e.getStatusCode().value(), e.getMessage());
+            throw e;
+        }
 
         // Parse OpenAI-compatible response
         Map<String, Object> responseMap = mapper.readValue(response, new TypeReference<Map<String, Object>>() {});

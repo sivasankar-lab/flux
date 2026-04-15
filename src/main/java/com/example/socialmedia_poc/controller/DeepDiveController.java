@@ -86,8 +86,12 @@ public class DeepDiveController {
 
         } catch (Exception e) {
             log.error("[DeepDive] Failed: {}", e.getMessage(), e);
+            String errorMsg = "Deep dive generation failed";
+            if (e.getMessage() != null && e.getMessage().contains("401 Unauthorized")) {
+                errorMsg = "LLM API key is invalid or expired. Please update it in the admin panel.";
+            }
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Deep dive generation failed"));
+                    .body(Map.of("error", errorMsg));
         }
     }
 
